@@ -1,0 +1,628 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>THE CODEBREAKER | Camera Fix v1.4.2</title><style>
+*{box-sizing:border-box}body{margin:0;background:#050b14;color:#e7f4ff;font:14px 'Segoe UI',Arial,sans-serif;overflow:hidden}canvas{display:block}#hud{position:fixed;inset:0;pointer-events:none}#top{display:flex;justify-content:space-between;align-items:flex-start;padding:20px;gap:15px}.panel{background:linear-gradient(110deg,#061525e8,#091526b8);border:1px solid #3b718b88;box-shadow:0 5px 35px #0008;border-radius:8px;padding:13px 17px;backdrop-filter:blur(6px)}.brand{font-size:22px;letter-spacing:5px;font-weight:800}.cyan{color:#5deaff}.sub{font-size:10px;letter-spacing:2px;color:#9db5c5}.meter{height:7px;background:#243243;border-radius:8px;overflow:hidden;margin-top:7px}.fill{height:100%;background:#48d6f0;width:100%}#health{background:#ff566a}#floor{font-size:28px;font-weight:800}#right{width:190px}#map{width:160px;height:160px;border:1px solid #3a7287;background:#071321;margin-top:8px}#bottom{position:fixed;bottom:18px;left:18px;right:18px;display:flex;justify-content:space-between;align-items:end;gap:10px}.objective{max-width:490px}.title{font-size:16px;font-weight:700;color:#ffd978}.key{display:inline-block;border:1px solid #89aab7;border-radius:4px;padding:2px 6px;margin:3px;color:white;background:#1c2b3b}#prompt{position:fixed;left:50%;bottom:105px;transform:translateX(-50%);background:#081522dc;border:1px solid #58ddeb;padding:10px 20px;border-radius:6px;color:#e6fcff;text-align:center;display:none}#toast{position:fixed;top:22%;left:50%;transform:translateX(-50%);padding:13px 25px;background:#081826ee;border:1px solid #4ee2fa;border-radius:8px;display:none;text-align:center;max-width:80vw}#cross{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);color:#79e9ff77;font-size:21px}#modal,#start,#end{position:fixed;inset:0;background:#030813e9;display:flex;align-items:center;justify-content:center;z-index:10;pointer-events:auto}#modal{display:none;background:#030813cc}#end{display:none}.dialog{width:min(570px,92vw);background:linear-gradient(130deg,#0d2033,#070e19);border:1px solid #3b96a7;box-shadow:0 20px 90px #000;padding:32px;border-radius:12px}h1{font-size:clamp(32px,5vw,58px);letter-spacing:7px;margin:0 0 10px}h2{color:#8ef2ff;margin:0 0 16px}p{line-height:1.65;color:#bdcdd9}button{border:1px solid #4ac6db;color:#e9fcff;background:#0c3c54;padding:11px 17px;border-radius:6px;font-weight:bold;cursor:pointer;margin:5px}button:hover{background:#17647a}input{padding:12px;background:#07121f;color:white;border:1px solid #63b7c7;width:100%;font-size:20px;letter-spacing:4px;text-align:center}#log{position:fixed;left:18px;top:185px;font-size:12px;color:#8dc4d1;max-width:310px}#log div{margin:5px 0;text-shadow:0 1px 3px black}#bossBar{display:none;position:fixed;top:105px;left:50%;transform:translateX(-50%);width:min(430px,70vw);text-align:center;background:#090d19b9;padding:10px;border:1px solid #ae3951}#bossFill{background:#f05b69}#hint{font-size:12px;color:#9fb8c9}@media(max-width:650px){#top{padding:7px}.panel{padding:8px}.brand{font-size:14px;letter-spacing:2px}#right{width:120px}#map{width:105px;height:105px}#log{display:none}#bottom{bottom:6px;left:6px;right:6px;font-size:11px}.objective{max-width:65%}#floor{font-size:20px}}
+#start{background:linear-gradient(90deg,#020713f5 0%,#03101ecf 55%,#020713a0),url('./cinematic_reference.png') center/cover no-repeat}#start .dialog{background:#071320dd;border-color:#57b8e7;box-shadow:0 15px 100px #000c,0 0 70px #08a9e122}#start h1{text-shadow:0 4px 30px #04bce155}#start .dialog{width:min(700px,92vw)}#start button{background:linear-gradient(90deg,#0a7892,#164a79);letter-spacing:2px}#levelTitle{position:fixed;top:125px;right:22px;text-align:right;letter-spacing:2px;color:#83e7f5;text-shadow:0 2px 6px #000}#floorNotice{position:fixed;top:28%;left:50%;transform:translateX(-50%);font-size:clamp(24px,4vw,54px);letter-spacing:8px;color:#e2fbff;text-shadow:0 0 30px #31d7fa;opacity:0;pointer-events:none;transition:opacity .4s}#soundToggle{position:fixed;bottom:12px;right:15px;z-index:12;font-size:11px;opacity:.8}#start .sub{line-height:1.8}
+#hitFlash{position:fixed;inset:0;background:#ff3158;opacity:0;pointer-events:none;mix-blend-mode:screen;z-index:4}#combo{position:fixed;top:42%;right:8%;font-size:clamp(22px,3vw,45px);font-weight:900;color:#ffe5a1;text-shadow:0 0 24px #ff6b4b;opacity:0;transition:opacity .2s;pointer-events:none}#story{display:none;position:fixed;inset:0;z-index:30;background:radial-gradient(ellipse at center,#101b32f7,#01040afc);align-items:center;justify-content:center;padding:20px}#story .dialog{max-width:760px;border-color:#eb647c;box-shadow:0 0 100px #c82b5544}#storyText{font-size:17px;line-height:1.8;color:#e4e9f2;white-space:pre-line}#storyLabel{color:#ff728e;letter-spacing:3px;font-size:12px}#story button{margin-top:22px}#storyProgress{font-size:11px;letter-spacing:2px;color:#93b5cc}#screenNoise{position:fixed;inset:0;pointer-events:none;opacity:0;background:repeating-linear-gradient(0deg,transparent 0 5px,#e9456520 6px 7px);z-index:25}#combatTip{position:fixed;left:50%;top:63%;transform:translateX(-50%);color:#ffd889;font-weight:700;text-shadow:0 2px 10px #000;pointer-events:none;opacity:0} </style><style>
+#tcbTools{position:fixed;right:15px;bottom:120px;z-index:12;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;max-width:430px}#tcbTools button{padding:10px 12px;font-size:11px;border:1px solid #38cbd6;background:#092433;color:#e7ffff;cursor:pointer}#tcbPhone,#tcbLobby{display:none;position:fixed;z-index:40;left:50%;top:50%;transform:translate(-50%,-50%);width:min(420px,94vw);background:#08131f;border:2px solid #3de6e8;border-radius:18px;padding:22px;color:#defaff;box-shadow:0 0 0 100vmax #0009,0 20px 80px #000}#tcbPhone input,#tcbLobby input{box-sizing:border-box;width:100%;padding:12px;background:#0d2738;border:1px solid #396c83;color:white;font-size:18px;margin:8px 0}#tcbPhone button,#tcbLobby button{padding:10px;margin:5px;background:#164256;color:white;border:1px solid #50bcd3;cursor:pointer}#tcbPhoneResult{font-size:20px;color:#8ff7cb;min-height:32px}#tcbNetworkStatus{font-size:12px;color:#a7d7e4}
+</style></head><body><div id="tcbTools"><button id="tcbPhoneButton">📱 DECRYPT PHONE [B]</button><button id="tcbCoopButton">◎ CO-OP ROOM</button><span id="tcbNetworkStatus">OFFLINE</span></div>
+<div id="tcbPhone"><h2>RONIN // DECRYPT TOOLKIT</h2><p style="font-size:12px;color:#9dcbd6">Choose the decoding method. AUTO FLOOR selects a method for the current terminal.</p><label for="tcbCipherMode" style="font-size:12px">DECODER</label><select id="tcbCipherMode" style="width:100%;padding:12px;background:#0d2738;color:white;border:1px solid #396c83"><option value="auto">AUTO — CURRENT FLOOR</option><option value="binary">BINARY → DECIMAL</option><option value="binaryascii">BINARY → ASCII</option><option value="caesar">CAESAR CIPHER</option><option value="rot13">ROT13</option><option value="hexascii">HEX → ASCII</option><option value="hexdecimal">HEX → DECIMAL</option><option value="base64">BASE64 → TEXT</option><option value="xor">BINARY XOR</option><option value="bitsbytes">BITS → BYTES</option><option value="cidr">IPv4 CIDR → TOTAL ADDRESSES</option><option value="reference">SECURITY REFERENCE</option></select><label id="tcbPhoneInputLabel" for="tcbBits" style="font-size:12px;display:block;margin-top:10px">INPUT</label><input id="tcbBits" placeholder="Enter encrypted text" maxlength="256" autocomplete="off"><div id="tcbExtraWrap" style="display:none"><label id="tcbExtraLabel" for="tcbExtra" style="font-size:12px">SHIFT / SECOND VALUE</label><input id="tcbExtra" placeholder="3"></div><div id="tcbPhoneResult" style="overflow-wrap:anywhere">RESULT: —</div><div id="tcbBitBreakdown" style="font-size:12px;color:#9dcbd6;word-wrap:break-word"></div><button id="tcbConvert">DECODE</button><button id="tcbCopyAnswer">USE AS ANSWER</button><button id="tcbPhoneClose">CLOSE</button></div>
+<div id="tcbLobby"><h2>THE CODEBREAKER // CO-OP</h2><p>Enter the same room code on both computers. Requires the included Node server.</p><input id="tcbRoom" placeholder="ROOM CODE" maxlength="16" value="NEXUS"><button id="tcbJoin">JOIN ROOM</button><button id="tcbLeave">DISCONNECT</button><button id="tcbLobbyClose">CLOSE</button><div id="tcbLobbyStatus">Not connected</div><p style="font-size:12px">Enemies scale with teammates on the same floor. Combat remains local to each client (not server-synchronized).</p></div><div id="hud"><div id="top"><div class="panel"><div class="brand">THE <span class="cyan">CODEBREAKER</span></div><div class="sub">NEXUS DYNAMICS // INFILTRATION</div><div style="margin-top:13px">ANALYST <span class="cyan">RONIN</span> · <span id="status">UNDETECTED</span></div><div class="sub">HEALTH <span id="hpText">100</span> / 100</div><div class="meter" style="width:220px"><div class="fill" id="health"></div></div><div class="sub" style="margin-top:8px">STAMINA <span id="staminaText">100</span> / 100</div><div class="meter" style="width:220px"><div class="fill" id="staminaFill" style="background:#f5c879"></div></div><div class="sub" style="margin-top:8px">SIGNAL / INTEL <span id="intel">0</span></div></div><div class="panel" id="right"><div class="sub">CURRENT LEVEL</div><div id="floor">01 <small style="font-size:12px;color:#95b9c9">/ 15</small></div><div class="sub">TOWER MAP <span style="color:#4fe5e3">● YOU</span></div><canvas id="map" width="160" height="160"></canvas><div class="sub" id="progress">PROGRESS 0%</div><div class="meter"><div class="fill" id="progFill" style="width:0"></div></div></div></div><div id="log"></div><div id="levelTitle">NEXUS TOWER · RESTRICTED AREA</div><div id="floorNotice"></div><div id="bossBar">SENTINEL-X · CORE GUARDIAN<div class="meter"><div class="fill" id="bossFill"></div></div></div><div id="cross">+</div><div id="combo"></div><div id="combatTip"></div><div id="hitFlash"></div><div id="screenNoise"></div><div id="prompt"></div><div id="toast"></div><div id="bottom"><div class="panel objective"><div class="sub">MISSION OBJECTIVE</div><div class="title" id="objective">Reach the security terminal</div><div id="hint">Follow the cyan marker. Avoid patrols or neutralize threats.</div></div><div class="panel"><span class="key">WASD</span> Move <span class="key">SHIFT</span> Run <span class="key">C</span> Crouch<br><span class="key">J</span> Jab/Cross/Hook <span class="key">K</span> Kick <span class="key">L</span> Block <span class="key">SPACE</span> Dodge <span class="key">E</span> Interact<br><span class="key">Q</span> Phone Scan <span class="key">U</span> USB <span class="key">Mouse</span> Camera</div></div></div><div id="start"><div class="dialog"><div class="sub">STORY + CO-OP NETWORK PROTOTYPE · MULTI-CIPHER PHONE v2.0 · ADAPTIVE SOUNDTRACK v2.2 · FAIR COMBAT</div><h1>THE <span class="cyan">CODEBREAKER</span></h1><h2>15 Floors. One Analyst. Humanity's Last Firewall.</h2><p>NEXUS Dynamics is building an autonomous robot army. Its central AI, <b>ORACLE</b>, plans to seize control of the world's infrastructure. You have one night to reach the top of the tower, breach fifteen encrypted security checkpoints, and destroy its command core.</p><p>You're unarmed. Your weapons are your <b>smartphone, USB toolkit, MMA training, and intelligence</b>. Security guards are armed. Stealth is your advantage.</p><button id="begin">BEGIN OPERATION</button><button id="continue" style="display:none">CONTINUE CHECKPOINT</button><div class="sub">Desktop browser recommended · Internet required for Three.js</div></div></div><div id="modal"><div class="dialog"><div class="sub" id="puzzleSub">NEXUS ACCESS CONTROL</div><h2 id="puzzleTitle">ENCRYPTED DOOR</h2><p id="puzzleQuestion"></p><input id="answer" autocomplete="off" placeholder="ENTER ACCESS KEY"><div id="puzzleFeedback" style="min-height:28px;color:#ffad8c;padding-top:10px"></div><button id="submit">DECRYPT</button><button id="close">CANCEL</button><div id="decryptInstructions" style="margin-top:14px;padding:13px 15px;border-left:3px solid #50dceb;background:#0c2c3d;border-radius:4px;line-height:1.65;color:#e0f6ff"><b style="color:#82eeff">HOW TO DECRYPT</b><div id="puzzleSteps" style="margin-top:6px"></div></div><p class="sub" id="puzzleHelp"></p></div></div><div id="end"><div class="dialog"><h1 id="endTitle">MISSION COMPLETE</h1><p id="endText"></p><button onclick="location.reload()">RESTART MISSION</button></div></div><div id="story"><div class="dialog"><div id="storyLabel">ORACLE // FINAL TRANSMISSION</div><h2 id="storyHeading">THE LAST FIREWALL</h2><p id="storyText"></p><div id="storyProgress"></div><button id="storyNext">CONTINUE</button></div></div><button id="soundToggle" title="Toggle sound effects and adaptive music">AUDIO: OFF</button>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js"}}</script>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.1/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.1/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import {clone as cloneSkinnedScene} from 'three/addons/utils/SkeletonUtils.js';
+const $=id=>document.getElementById(id),scene=new THREE.Scene();scene.background=new THREE.Color(0x07101b);scene.fog=new THREE.FogExp2(0x07101b,.017);const camera=new THREE.PerspectiveCamera(65,innerWidth/innerHeight,.1,200);camera.position.set(-14,3.2,10);const renderer=new THREE.WebGLRenderer({antialias:true});renderer.setSize(innerWidth,innerHeight);renderer.setPixelRatio(Math.min(devicePixelRatio,1.8));renderer.shadowMap.enabled=true;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.72;renderer.outputColorSpace=THREE.SRGBColorSpace;document.body.prepend(renderer.domElement);
+// Atmospheric lighting and procedural accents
+const fillLight=new THREE.DirectionalLight(0xffe4c4,1.25);fillLight.position.set(7,10,-8);scene.add(fillLight);
+const cameraFill=new THREE.PointLight(0xd1efff,4,14,2);scene.add(cameraFill);
+const ambientParticles=[];const ambientGroup=new THREE.Group();scene.add(ambientGroup);
+const accentA=new THREE.PointLight(0x20b8f5,35,28,2);accentA.position.set(-12,3,-8);scene.add(accentA);
+const accentB=new THREE.PointLight(0xff315a,29,26,2);accentB.position.set(12,3,8);scene.add(accentB);
+let audioCtx=null,audioEnabled=false;const audioButton=document.getElementById('soundToggle');
+// Original adaptive synth soundtrack: quiet infiltration, combat, and SENTINEL-X.
+const tcbTracks=Object.fromEntries(['stealth','combat','boss'].map(name=>{
+ const el=new Audio('./assets/music/'+name+'.wav');el.loop=true;el.preload='auto';el.volume=0;return [name,el];
+}));
+let tcbMusicVolume=.22;
+function tcbStartMusic(){if(!audioEnabled)return;for(const el of Object.values(tcbTracks)){if(el.paused)el.play().catch(()=>{});}}
+function tcbStopMusic(){for(const el of Object.values(tcbTracks)){el.pause();el.currentTime=0;el.volume=0;}}
+let tcbMusicUpdateAt=0;
+function tcbUpdateMusic(dt){if(!audioEnabled||!running)return;
+ const combat=guards.some(g=>!g.down&&g.hp>0&&g.alert>0.15&&Math.hypot(g.mesh.position.x-player.position.x,g.mesh.position.z-player.position.z)<15);
+ const mood=playerData.floor===15&&boss&&boss.hp>0?'boss':combat?'combat':'stealth';
+ for(const [name,el] of Object.entries(tcbTracks)){const target=name===mood?tcbMusicVolume:0;el.volume=Math.max(0,Math.min(1,el.volume+(target>el.volume?1:-1)*dt*.18));}
+}
+audioButton.onclick=()=>{audioEnabled=!audioEnabled;audioButton.textContent='AUDIO: '+(audioEnabled?'ON':'OFF');if(audioEnabled){if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();audioCtx.resume?.();tcbStartMusic()}else tcbStopMusic()};
+function sfx(freq=220,duration=.1,type='sine'){if(!audioEnabled||!audioCtx)return;const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type=type;o.frequency.setValueAtTime(freq,audioCtx.currentTime);o.frequency.exponentialRampToValueAtTime(Math.max(30,freq*.65),audioCtx.currentTime+duration);g.gain.setValueAtTime(.055,audioCtx.currentTime);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+duration);o.connect(g).connect(audioCtx.destination);o.start();o.stop(audioCtx.currentTime+duration)}
+function floorNotice(text){const e=document.getElementById('floorNotice');e.textContent=text;e.style.opacity='1';setTimeout(()=>e.style.opacity='0',1700)}
+const hemi=new THREE.HemisphereLight(0xbcdfff,0x32445c,2.35);scene.add(hemi);const sun=new THREE.DirectionalLight(0xe6f3ff,2.65);sun.position.set(-9,20,12);sun.castShadow=true;sun.shadow.mapSize.set(1024,1024);sun.shadow.camera.left=-30;sun.shadow.camera.right=30;sun.shadow.camera.top=30;sun.shadow.camera.bottom=-30;scene.add(sun);
+const mat=(color,metalness=0,roughness=.7)=>new THREE.MeshStandardMaterial({color,metalness,roughness});const black=mat(0x11151c,.3),jacket=mat(0x141922,.15),shirt=mat(0x080b11),skin=mat(0xe3b9a1),hair=mat(0x08090c),trousers=mat(0x10131b),shoes=mat(0x0b0c10),cyan=mat(0x3bd8e8,.4),red=mat(0xeb5266,.4),white=mat(0xb4cad8),floorMat=mat(0x182333,.35),wallMat=mat(0x253245,.2),glass=new THREE.MeshStandardMaterial({color:0x23566c,transparent:true,opacity:.28,metalness:.6,roughness:.12,side:THREE.DoubleSide});
+function cube(w,h,d,m,x=0,y=0,z=0,parent=scene){const o=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o}function sphere(r,m,x,y,z,parent){const o=new THREE.Mesh(new THREE.SphereGeometry(r,12,9),m);o.position.set(x,y,z);parent.add(o);return o}function group(parent){let g=new THREE.Group();parent.add(g);return g}
+// CODEBREAKER v0.7: procedural rigged character with independent shoulder, elbow, hip and knee joints.
+function human(isGuard=false){
+ const root=group(scene), body=group(root), head=group(body), leftArm=group(body), rightArm=group(body),leftLeg=group(body),rightLeg=group(body);
+ const coat=isGuard?mat(0x283443,.18,.7):mat(0x10141c,.2,.53), skinTone=mat(0xc58d73,0,.92),darkHair=mat(0x08080c,0,.95),cloth=mat(0x151720,.08,.8), sole=mat(0x080a0e,.1,.85),silver=mat(0x667782,.7,.3);
+ const ell=(parent,x,y,z,rx,ry,rz,m)=>{const o=new THREE.Mesh(new THREE.SphereGeometry(1,18,12),m);o.scale.set(rx,ry,rz);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o};
+ // Tailored silhouette: jacket lapels, collar, torso, waist and shoulders.
+ ell(body,0,1.52,0,.38,.47,.22,coat);ell(body,0,1.13,0,.29,.23,.19,coat);
+ cube(.24,.55,.04,isGuard?cloth:mat(0x06090d),0,1.54,-.219,body);
+ for(const side of [-1,1]){const lapel=cube(.115,.47,.055,isGuard?coat:mat(0x252a33),side*.16,1.64,-.245,body);lapel.rotation.z=side*.25;ell(body,side*.31,1.81,0,.18,.13,.2,coat)}
+ // Neck and anatomically shaped face, ears, nose, brows, beard, textured hair tufts.
+ ell(head,0,-.12,0,.105,.17,.1,skinTone);ell(head,0,.16,0,.245,.31,.22,skinTone);head.position.y=2.02;
+ ell(head,-.24,.13,0,.055,.1,.065,skinTone);ell(head,.24,.13,0,.055,.1,.065,skinTone);
+ ell(head,0,.14,-.218,.065,.075,.065,skinTone);
+ ell(head,0,-.055,-.14,.19,.085,.115,darkHair);ell(head,0,-.11,-.22,.095,.06,.04,darkHair);
+ ell(head,0,.385,0,.247,.115,.225,darkHair);
+ for(let i=0;i<9;i++){const x=(i-4)*.055;const tuft=ell(head,x,.425+Math.sin(i*2.3)*.025,-.08,.055,.10+Math.abs(Math.sin(i*1.7))*.06,.075,darkHair);tuft.rotation.z=(i-4)*-.11}
+ // Facial detail: cheekbones, jaw, nostrils, lip line, irises and subtle highlights.
+ ell(head,-.16,.025,-.15,.09,.095,.065,skinTone);ell(head,.16,.025,-.15,.09,.095,.065,skinTone);
+ ell(head,0,-.075,-.212,.095,.018,.018,mat(0x643d37));
+ for(const side of [-1,1]){ell(head,side*.037,.088,-.269,.016,.011,.011,mat(0x674d45));ell(head,side*.106,.176,-.232,.034,.024,.013,mat(0xe9e4db));ell(head,side*.105,.176,-.245,.015,.018,.008,mat(0x263a41));ell(head,side*.10,.182,-.252,.006,.007,.005,mat(0xe6f5f5));}
+ for(const side of [-1,1]){ell(head,side*.103,.18,-.216,.021,.014,.012,mat(0x0a0b0c));const brow=ell(head,side*.105,.235,-.21,.08,.018,.023,darkHair);brow.rotation.z=side*.1}
+
+ // v1.0 sculptural details: face contour, eye sockets, lashes, jaw, hair silhouette, suit seams.
+ const blush=mat(isGuard?0x9d6b5a:0xb98169,0,.92), shadowSkin=mat(0x765344,0,.95);
+ for(const side of [-1,1]){
+  ell(head,side*.187,.025,-.113,.067,.115,.084,blush); // jaw angles
+  ell(head,side*.12,.175,-.224,.073,.039,.014,mat(0x493a35)); // orbital recess
+  ell(head,side*.11,.191,-.255,.039,.017,.009,mat(0xe9e5df));
+  ell(head,side*.11,.192,-.264,.014,.015,.008,mat(0x23333d));
+  ell(head,side*.11,.195,-.272,.005,.005,.004,mat(0xffffff));
+  ell(head,side*.105,.226,-.232,.084,.017,.022,darkHair);
+  ell(head,side*.235,.10,-.005,.026,.053,.033,blush); // ear fold
+  const sideburn=ell(head,side*.209,.245,-.095,.041,.115,.067,darkHair);sideburn.rotation.z=side*.15;
+  for(let j=0;j<3;j++){let hairPiece=ell(head,side*(.09+j*.05),.385-j*.016,-.135,.052,.08,.066,darkHair);hairPiece.rotation.z=side*(.2+j*.13)}
+  const seam=cube(.015,.35,.018,mat(0x364251,.3),side*.355,1.47,-.127,body);seam.rotation.z=side*.07;
+  cube(.06,.018,.02,mat(0x81909a,.65,.3),side*.22,1.07,-.192,body);
+ }
+ ell(head,0,-.075,-.15,.183,.10,.10,isGuard?shadowSkin:darkHair); // defined beard jaw
+ ell(head,0,-.015,-.229,.10,.022,.014,mat(0x9a655f)); // lip
+ ell(head,0,.052,-.232,.046,.035,.039,blush); // nose tip
+ ell(head,0,.088,-.214,.038,.085,.043,skinTone); // bridge
+ for(let i=0;i<6;i++){
+  const x=(i-2.5)*.075;const spike=ell(head,x,.48+Math.sin(i*1.9)*.035,-.052,.052,.11+Math.sin(i*1.1)**2*.07,.06,darkHair);spike.rotation.z=-x*.85;
+ }
+ if(isGuard){
+  const vest=mat(0x1d2b36,.35,.65);cube(.57,.47,.11,vest,0,1.50,-.24,body);
+  for(let k=0;k<3;k++)cube(.40,.028,.018,mat(0x47596b,.55,.42),0,1.35+k*.12,-.302,body);
+  cube(.16,.08,.035,mat(0xd3a66d,.65,.3),.16,1.70,-.32,body);
+  for(const side of [-1,1])cube(.10,.19,.11,mat(0x141c24),side*.36,1.70,-.15,body);
+ }
+ // Multi-joint limbs. Arms have independently articulated forearms and wrists.
+ const limbs={};
+ for(const [name,side] of [['left',-1],['right',1]]){
+  const arm=name==='left'?leftArm:rightArm;arm.position.set(side*.43,1.79,0);
+  ell(arm,0,-.235,0,.145,.285,.15,coat);
+  const elbow=group(arm);elbow.position.y=-.48;ell(elbow,0,-.22,0,.112,.245,.115,coat);
+  const wrist=group(elbow);wrist.position.y=-.45;ell(wrist,0,-.075,0,.105,.125,.09,isGuard?cloth:skinTone);
+  // Five distinct fingers, thumb and knuckle definition (front is local -Z).
+  for(let finger=0;finger<4;finger++){let fx=(finger-1.5)*.043;ell(wrist,fx,-.19,-.012,.021,.075-(finger===0||finger===3?.012:0),.026,isGuard?cloth:skinTone)}
+  const thumb=ell(wrist,side*.108,-.085,-.065,.032,.082,.037,isGuard?cloth:skinTone);thumb.rotation.z=-side*.45;
+  for(let kn=0;kn<4;kn++)ell(wrist,(kn-1.5)*.043,-.135,-.075,.019,.022,.012,isGuard?cloth:skinTone);
+  if(!isGuard&&side===-1){cube(.12,.2,.04,mat(0x0c1b24,.3,.2),0,-.07,-.13,wrist);cube(.09,.16,.012,mat(0x3fcce4,.2,.2),0,-.07,-.155,wrist)}
+  // Sculpted palm, joint creases and finger segments.
+  ell(wrist,0,-.12,-.025,.112,.095,.065,isGuard?cloth:skinTone);
+  for(let finger=0;finger<4;finger++){
+   let fx=(finger-1.5)*.043;
+   ell(wrist,fx,-.232,-.014,.018,.028,.021,isGuard?cloth:skinTone);
+   ell(wrist,fx,-.155,-.039,.019,.013,.014,isGuard?cloth:blush);
+  }
+  cube(.19,.022,.018,isGuard?mat(0x3c4a55):mat(0x242e38),0,-.012,-.083,wrist);
+  limbs[name+'Elbow']=elbow;limbs[name+'Wrist']=wrist;
+  const leg=name==='left'?leftLeg:rightLeg;leg.position.set(side*.185,1.02,0);
+  ell(leg,0,-.25,0,.17,.30,.18,cloth);
+  const knee=group(leg);knee.position.y=-.51;ell(knee,0,-.25,0,.14,.29,.15,cloth);
+  const foot=group(knee);foot.position.y=-.49;ell(foot,0,-.075,-.09,.17,.12,.27,sole);
+  limbs[name+'Knee']=knee;limbs[name+'Foot']=foot;
+ }
+ if(isGuard){cube(.55,.17,.35,mat(0x0a0d12),0,1.49,-.21,body);cube(.4,.055,.04,mat(0xe33249,.3),0,1.65,-.23,body)}
+ else{cube(.11,.35,.055,silver,-.245,1.42,-.19,body);cube(.11,.35,.055,silver,.245,1.42,-.19,body)}
+ root.userData={body,head,leftArm,rightArm,leftLeg,rightLeg,...limbs,rigVersion:10};return root;
+}
+// v1.4: imported unrigged GLB characters; procedural rigs remain as gameplay fallback.
+const characterLoader=new GLTFLoader();
+const characterMixers=[];
+const importedCharacters=[];
+const assetStates={player:'loading',guard:'loading',boss:'floor 15'};
+const assetIndicator=document.createElement('div');
+assetIndicator.id='tcbAssetIndicator';
+assetIndicator.style.cssText='position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:15;padding:8px 13px;border:1px solid #4ee2fa;background:#071522e8;color:#d9f8ff;font:12px monospace;pointer-events:none;border-radius:5px';
+assetIndicator.textContent='3D MODELS: loading...';
+document.body.appendChild(assetIndicator);
+function updateAssetIndicator(){
+ assetIndicator.textContent='3D MODELS: '+Object.entries(assetStates).map(([k,v])=>k.toUpperCase()+' '+v).join(' · ');
+ assetIndicator.style.borderColor=Object.values(assetStates).includes('fallback')?'#ff986a':'#4ee2fa';
+}
+const TCB_ASSETS={
+ player:{url:'./assets/characters/hero.glb',height:2.12,yaw:Math.PI},
+ guard:{url:'./assets/characters/sentinel_x.glb',height:2.12,yaw:Math.PI},
+ boss:{url:'./assets/characters/guard.glb',height:4.90,yaw:Math.PI,widthScale:1.28}
+};
+const tcbGLBCache=new Map();
+function tcbGetGLB(kind){
+ const url=TCB_ASSETS[kind].url;
+ if(!tcbGLBCache.has(url))tcbGLBCache.set(url,characterLoader.loadAsync(url).catch(e=>{
+   tcbGLBCache.delete(url);throw e;
+ }));
+ return tcbGLBCache.get(url);
+}
+function tcbNormalizeModel(model,kind){
+ const cfg=TCB_ASSETS[kind];
+ // Imported VRoid/GLB meshes may use centimeters or arbitrary origins.
+ model.updateMatrixWorld(true);
+ const bounds=new THREE.Box3().setFromObject(model);
+ const size=bounds.getSize(new THREE.Vector3());
+ if(!Number.isFinite(size.y)||size.y<0.0001)throw Error('Invalid GLB bounding box');
+ const center=bounds.getCenter(new THREE.Vector3());
+ const scale=cfg.height/size.y;
+ // Apply normalization on a wrapper so mesh/material data remain untouched.
+ const wrapper=new THREE.Group();
+ model.position.set(-center.x,-bounds.min.y,-center.z);
+ wrapper.scale.set(scale*(cfg.widthScale||1),scale,scale*(cfg.widthScale||1));
+ wrapper.rotation.y=cfg.yaw;
+ wrapper.add(model);
+ return wrapper;
+}
+async function attachRiggedCharacter(holder,kind){
+ const fallback=[...holder.children];
+ try{
+  const gltf=await tcbGetGLB(kind);
+  if(!holder.parent)return;
+  const model=cloneSkinnedScene(gltf.scene);
+  model.traverse(node=>{
+   if(node.isMesh||node.isSkinnedMesh){
+    node.castShadow=true;node.receiveShadow=true;
+    node.frustumCulled=false;
+   }
+  });
+  const normalized=tcbNormalizeModel(model,kind);
+  holder.add(normalized);
+  fallback.forEach(node=>node.visible=false);
+  const mixer=new THREE.AnimationMixer(model);
+  const actions=new Map();
+  for(const clip of gltf.animations||[])actions.set(clip.name.toLowerCase(),mixer.clipAction(clip));
+  const actor={holder,model:normalized,mixer,actions,kind,current:null,
+   motionTime:Math.random()*Math.PI*2,
+   restY:normalized.position.y,
+   lastX:holder.position.x,lastZ:holder.position.z,
+   moveSpeed:0,actionTime:0,previousAction:'idle',
+   baseScale:normalized.scale.x,
+
+   play(name){
+    const desired=actions.get(name.toLowerCase())||actions.get('idle')||actions.values().next().value;
+    if(!desired||this.current===desired)return;
+    const oneShot=['jab','cross','hook','punch','kick','dodge','hit','death'].includes(name);
+    desired.enabled=true;
+    desired.setLoop(oneShot?THREE.LoopOnce:THREE.LoopRepeat,oneShot?1:Infinity);
+    desired.clampWhenFinished=oneShot;
+    desired.reset().setEffectiveTimeScale(1).setEffectiveWeight(1).fadeIn(oneShot?.09:.17).play();
+    if(this.current)this.current.fadeOut(oneShot?.08:.17);
+    this.current=desired;
+   }};
+  actor.play('idle');
+  characterMixers.push(actor);importedCharacters.push(actor);
+  assetStates[kind]='loaded';updateAssetIndicator();
+  console.info('TCB v1.4 loaded',kind, 'clips:',actions.size);
+ }catch(error){
+  assetStates[kind]='fallback';updateAssetIndicator();
+  console.warn('TCB v1.4: could not load '+kind+' GLB; procedural fallback retained.',error);
+ }
+}
+function tcbAttachBoss(holder){
+ assetStates.boss='loading';updateAssetIndicator();attachRiggedCharacter(holder,'boss');
+}
+const player=human();
+attachRiggedCharacter(player,'player');player.position.set(-14,0,12);player.rotation.y=Math.PI;const playerData={hp:100,floor:1,intel:0,stealth:false,usb:false,alive:true,terminal:false,scan:0,attack:0,attackType:'',invulnerable:0,stamina:100,combo:0,lastHit:-20,blocking:false,dodge:0,hitStop:0};const keys={};let running=false,paused=false,elapsed=0,yaw=0,camPitch=.3,guards=[],interactables=[],solid=[],decor=[],boss=null,term=null,door=null,exit=null,particles=[];const clock=new THREE.Clock();
+function obstacle(x,z,w,d,h=2,m=wallMat){cube(w,h,d,m,x,h/2,z);solid.push({x,z,w,d})}function labelSprite(text,color='#70e7f4'){const cv=document.createElement('canvas');cv.width=512;cv.height=128;const c=cv.getContext('2d');c.fillStyle='#06121cd9';c.fillRect(0,0,512,128);c.strokeStyle=color;c.strokeRect(2,2,508,124);c.fillStyle=color;c.font='bold 42px Arial';c.textAlign='center';c.fillText(text,256,78);let tx=new THREE.CanvasTexture(cv),sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,transparent:true,depthTest:false}));sp.scale.set(3.3,.83,1);scene.add(sp);return sp}
+function clearFloor(){tcbSpawnBudget=0;tcbNextGuardIndex=6;tcbActiveTeammates=0;for(let i=characterMixers.length-1;i>=0;i--){if(characterMixers[i].kind!=='player' || characterMixers[i].holder!==player){characterMixers.splice(i,1)}}for(const obj of decor)scene.remove(obj);decor=[];for(const g of guards)scene.remove(g.mesh);guards=[];for(const x of interactables)if(x.marker)scene.remove(x.marker);interactables=[];solid=[];if(boss){scene.remove(boss.mesh);boss=null}for(const child of [...scene.children])if(child.userData.floorObject)scene.remove(child);$('bossBar').style.display='none'}function stageObject(o){o.userData.floorObject=true;return o}
+function tcbSpawnGuard(i){const spots=[[-4,-10],[4,6],[-11,0],[10,6],[-2,10],[9,-2],[-9,9],[8,-10],[0,12],[13,0],[-13,-10],[2,-12]];let [x,z]=spots[i%spots.length];if(collide(x,z,.7)){const safe=spots.find(p=>!collide(p[0],p[1],.7)&&dist({x:p[0],z:p[1]},player.position)>3);if(safe)[x,z]=safe;else return;}let mesh=human(true);mesh.position.set(x,0,z);let enemy={mesh,hp:50+playerData.floor*4,baseX:x,baseZ:z,phase:i*1.7,alert:0,cool:.3+Math.random(),dir:0,stagger:0,staggerMax:0,knockback:new THREE.Vector3(),lastReaction:'',down:false};guards.push(enemy);attachRiggedCharacter(mesh,'guard')}
+
+function buildFloor(){clearFloor();if(playerData.floor!==15){assetStates.boss='floor 15';updateAssetIndicator()}floorNotice('FLOOR '+String(playerData.floor).padStart(2,'0')+' / 15');player.position.set(-14,0,12);player.rotation.y=Math.PI;yaw=0;playerData.terminal=false;playerData.usb=false;scene.background=new THREE.Color(playerData.floor===15?0x160b16:0x07101b);let f=playerData.floor;document.getElementById('levelTitle').textContent=['NEXUS · SECURITY LOBBY','NEXUS · CYBER OPERATIONS','NEXUS · ROBOTICS LAB','NEXUS · DATA INFRASTRUCTURE','NEXUS · EXECUTIVE SYSTEMS'][(f-1)%5]+' · FLOOR '+f;
+const root=stageObject(group(scene));
+// Procedural emissive floor lighting and office signage
+const neonMat=new THREE.MeshStandardMaterial({color:0x1ab9db,emissive:0x086b95,emissiveIntensity:1.7,metalness:.4});
+const warningMat=new THREE.MeshStandardMaterial({color:0xf14b69,emissive:0x9a102b,emissiveIntensity:1.1});
+for(let i=0;i<12;i++){const x=-15+(i%6)*6,z=-12+Math.floor(i/6)*24;cube(2.6,.055,.13,i%4===0?warningMat:neonMat,x,4.78,z,root)}
+for(let x of [-15.5,15.5])for(let z of [-11,0,11]){cube(.14,2.5,.14,neonMat,x,2.1,z,root)}
+cube(36,.5,30,floorMat,0,-.3,0,root);cube(36,.3,30,mat(0x101d2d),0,5,0,root);for(let x=-17;x<=17;x+=4){cube(.025,.025,30,cyan,x,4.83,0,root)}for(let z=-14;z<=14;z+=4)cube(36,.025,.025,cyan,0,4.83,z,root);
+for(let x of [-18,18]){cube(.4,5.3,30,wallMat,x,2.45,0,root);for(let z=-12;z<=12;z+=6)cube(.06,3.1,4,glass,x-Math.sign(x)*.22,2.4,z,root)}for(let z of [-15,15])cube(36,5.3,.4,wallMat,0,2.45,z,root);
+for(let x of [-12,-4,4,12])for(let z of [-10,0,10]){let fixture=cube(1.7,.07,.65,mat(0x74d9f6),x,4.73,z,root);let light=new THREE.PointLight(f===15?0xff728b:0xa9e7ff,2.4,13);light.position.set(x,4.5,z);root.add(light)}
+const variants=[['RECEPTION','RESEARCH','DATA CENTER'],['DEVELOPMENT','CYBER LAB','ROBOTICS'],['EXECUTIVE','NETWORK OPS','AUTOMATION']];let zone=variants[f%3];for(let i=0;i<6;i++){let x=-10+(i%3)*10,z=-7+Math.floor(i/3)*10;let desk=cube(3,.12,1.25,mat(0x4b596a,.4),x,.83,z,root);for(let sx of [-1.3,1.3])cube(.12,.75,.12,black,x+sx,.4,z,root);cube(.92,.65,.08,black,x,1.23,z-.3,root);cube(.82,.48,.04,mat(0x1685a5,.1),x,1.23,z-.35,root);cube(.6,.06,.25,white,x,.91,z+.35,root);let chair=cube(.55,.65,.14,black,x,.72,z+1.2,root);cube(.5,.1,.5,black,x,.42,z+.98,root);solid.push({x,z,w:3,d:1.7})}
+for(let [x,z] of [[-5,5],[5,-5],[15,5],[-15,-5]]){cube(.8,4,.8,wallMat,x,2,z,root);solid.push({x,z,w:.8,d:.8})}
+for(let [x,z] of [[-14,-8],[14,8]]){let cab=cube(2.1,3.3,.8,black,x,1.65,z,root);for(let i=0;i<7;i++)cube(.8,.08,.04,i%2?cyan:red,x-.5+(i%2)*.95,.5+i*.36,z-.44,root);solid.push({x,z,w:2.1,d:.8})}
+let terminalMesh=cube(1.8,1.5,.8,black,11,.75,-11,root);cube(1.4,.9,.06,cyan,11,1.35,-11.44,root);solid.push({x:11,z:-11,w:1.8,d:.8});term={x:11,z:-11};let tm=labelSprite('ACCESS TERMINAL');tm.position.set(11,3.1,-11);interactables.push({x:11,z:-11,kind:'terminal',marker:tm});// Elevator vestibule: recessed double doors, stainless framing, call panel, directional arrows and status lamps.
+const steel=mat(0x8197a6,.72),steelDark=mat(0x192e3b,.7),liftGlow=new THREE.MeshStandardMaterial({color:0x4cecff,emissive:0x13a8c8,emissiveIntensity:2.4});
+cube(.20,4.5,5.2,steelDark,17.45,2.25,-10,root);
+cube(.23,4.25,2.03,steel,17.27,2.13,-11.04,root);
+cube(.23,4.25,2.03,steel,17.27,2.13,-8.96,root);
+cube(.31,4.65,.16,steel,17.08,2.3,-12.17,root);
+cube(.31,4.65,.16,steel,17.08,2.3,-7.83,root);
+cube(.3,.27,4.55,steel,17.07,4.52,-10,root);
+cube(.09,3.75,.055,black,17.13,2.08,-10,root);
+for(let z of [-11.1,-8.9]){cube(.07,1.3,.07,liftGlow,17.12,2.0,z,root);cube(.12,.13,.12,cyan,17.10,3.4,z,root)}
+cube(.22,.78,.48,steelDark,16.91,1.56,-7.05,root);solid.push({x:17.27,z:-10,w:.23,d:4.25});
+cube(.08,.17,.22,liftGlow,16.77,1.7,-7.05,root);
+const liftSign=labelSprite('NEXUS // LIFT '+String(f).padStart(2,'0')+'  ↑','#9deaff');liftSign.position.set(16.9,4.9,-10);root.add(liftSign);
+for(let z of [-12.6,-7.4])cube(.25,.07,.9,liftGlow,16.6,.08,z,root);
+door={x:16,z:-10};let dm=labelSprite(f===15?'AI CORE':'ELEVATOR / NEXT FLOOR','#ffd36b');dm.position.set(15.3,4.5,-10);interactables.push({x:16,z:-10,kind:'door',marker:dm});
+for(let i=0;i<(f===15?2:Math.min(2+Math.floor(f/3),6));i++)tcbSpawnGuard(i);
+
+if(f===15){let mesh=group(scene);const core=mat(0x353e50,.8),glow=mat(0xff4865,.5);cube(2.1,2.8,1.2,core,0,2.4,0,mesh);cube(1.5,.35,1.4,core,0,4.1,0,mesh);sphere(.38,glow,0,3.55,-.7,mesh);for(let x of [-1.4,1.4]){cube(.65,2,.8,core,x,2.5,0,mesh);cube(.8,.5,.8,core,x,1.5,0,mesh)}for(let x of [-.7,.7])cube(.65,1.9,.8,core,x,.9,0,mesh);// Guardian optical sensors, mechanical joints and powered spine
+for(let x of [-1.4,1.4]){sphere(.24,glow,x,3.5,-.4,mesh);sphere(.15,core,x,2.05,-.45,mesh)}
+for(let x of [-.7,.7])sphere(.23,glow,x,1.35,-.5,mesh);
+for(let y of [1.6,2.3,3.0])cube(.65,.12,.15,glow,0,y,.7,mesh);
+mesh.position.set(0,0,-4);tcbAttachBoss(mesh);boss={mesh,hp:320,maxHp:320,cool:0,phase:0,active:false};$('bossBar').style.display='block';$('bossFill').style.width='100%';cube(6,3,.6,black,0,1.5,-13,root);for(let x=-2;x<=2;x++)for(let y=0;y<3;y++)cube(.8,.6,.04,cyan,x*.9,.7+y*.7,-13.35,root)}
+$('floor').innerHTML=String(f).padStart(2,'0')+' <small style="font-size:12px;color:#95b9c9">/ 15</small>';$('progress').textContent='PROGRESS '+Math.round((f-1)/15*100)+'%';$('progFill').style.width=((f-1)/15*100)+'%';$('objective').textContent=f===15?'Breach the core terminal. Defeat SENTINEL-X.':'Locate terminal · Decrypt elevator access';$('hint').textContent=f===15?'USB disables robot shields. Punch and kick at close range.':'Use Q to scan guards, C to crouch, E at cyan terminal.';addLog('LEVEL '+f+' — '+zone[f%3]+' | Security protocol active');if(tcbPeers.size){tcbSpawnBudget=2*[...tcbPeers.values()].filter(p=>p.visible).length;tcbScaleGuards()}}
+function addLog(s){const e=document.createElement('div');e.textContent='> '+s;$('log').prepend(e);while($('log').children.length>6)$('log').lastChild.remove()};let toastTime=0;function toast(s){sfx(540,.09); $('toast').textContent=s;$('toast').style.display='block';toastTime=3.2}function dist(a,b){return Math.hypot(a.x-b.x,a.z-b.z)}// Circular player collider against room bounds and rectangular world obstacles.
+const PLAYER_RADIUS=.52;
+function collide(x,z,r=PLAYER_RADIUS){
+ if(x-r< -17.75||x+r>17.75||z-r< -14.75||z+r>14.75)return true;
+ if(boss&&boss.hp>0&&Math.hypot(x-boss.mesh.position.x,z-boss.mesh.position.z)<r+1.10)return true;
+ return solid.some(a=>{
+  const nearestX=THREE.MathUtils.clamp(x,a.x-a.w/2,a.x+a.w/2);
+  const nearestZ=THREE.MathUtils.clamp(z,a.z-a.d/2,a.z+a.d/2);
+  return (x-nearestX)**2+(z-nearestZ)**2<r*r;
+ });
+}
+// Sweep the character through the intended displacement in short increments.
+// Axis separation allows sliding along desks/walls without teleporting through them.
+function movePlayerSafely(dx,dz){
+ const count=Math.max(1,Math.ceil(Math.hypot(dx,dz)/.18));
+ const sx=dx/count,sz=dz/count;
+ for(let i=0;i<count;i++){
+  const nx=player.position.x+sx;
+  if(!collide(nx,player.position.z))player.position.x=nx;
+  const nz=player.position.z+sz;
+  if(!collide(player.position.x,nz))player.position.z=nz;
+ }
+}
+function near(){let closest=null,d=3;for(const a of interactables){let k=Math.hypot(player.position.x-a.x,player.position.z-a.z);if(k<d){closest=a;d=k}}return closest}
+const questions=[{q:'Binary access token: Convert 101101 (base 2) to decimal.',a:['45'],help:'Each bit represents a power of 2.'},{q:'Caesar cipher: Decode QHA (shift each letter back by 3).',a:['NEX'],help:'Shift each letter three places backward.'},{q:'A SHA-256 digest is 256 bits. How many bytes is that?',a:['32'],help:'8 bits = 1 byte.'},{q:'Decode hexadecimal 4E 45 58 55 53 as ASCII.',a:['NEXUS'],help:'Two hexadecimal digits represent one byte.'},{q:'What is 0x2A in decimal?',a:['42'],help:'2 × 16 + 10.'},{q:'Decode ROT13: B E N P Y R (without spaces).',a:['ORACLE'],help:'ROT13 shifts letters 13 positions.'},{q:'What protocol normally provides encrypted web traffic? (abbreviation)',a:['HTTPS'],help:'HTTP with TLS.'},{q:'Evaluate XOR: 1101 XOR 1011 (4 bits).',a:['0110','110'],help:'1 if bits differ, 0 if equal.'},{q:'Decode binary ASCII 01000001 01001001.',a:['AI'],help:'Each 8-bit group represents one ASCII character.'},{q:'What is the default port number for HTTPS?',a:['443'],help:'Three digits.'},{q:'A network with mask /24 has how many total IPv4 addresses?',a:['256'],help:'2^(32-24). Includes network and broadcast.'},{q:'Hexadecimal FF equals what decimal number?',a:['255'],help:'15×16 + 15.'},{q:'What does MFA stand for? (three words)',a:['MULTI FACTOR AUTHENTICATION','MULTIFACTOR AUTHENTICATION'],help:'An authentication approach using multiple factors.'},{q:'Decode Base64: T1JBQ0xF',a:['ORACLE'],help:'The name of the rogue AI.'},{q:'FINAL AUTHORIZATION: Which security principle gives only necessary permissions? (two words)',a:['LEAST PRIVILEGE','PRINCIPLE OF LEAST PRIVILEGE'],help:'Minimum access required to perform a task.'}];const decryptSteps=["1. Read the binary digits from right to left. 2. Assign powers of 2 (1, 2, 4, 8, ...). 3. Add the values wherever the digit is 1. Enter the decimal number.", "1. Write down QHA. 2. Move every letter 3 places backward in the alphabet, wrapping around from A to Z. 3. Enter the resulting letters.", "1. Recall that one byte contains 8 bits. 2. Divide the stated bit length by 8. 3. Enter the number of bytes.", "1. Split the hexadecimal string into pairs. 2. Convert each pair to its ASCII character. 3. Join the characters without spaces.", "1. In hexadecimal, A means 10. 2. Multiply the first digit by 16 and add the second digit. 3. Enter the decimal result.", "1. Remove spaces between letters. 2. Move each letter 13 places through the alphabet (ROT13). 3. Enter the decoded word.", "1. Think of the secure version of the protocol used to load web pages. 2. Enter its standard abbreviation.", "1. Compare the two binary strings bit by bit. 2. Write 1 when the bits differ and 0 when they match. 3. Enter four digits.", "1. Separate the bits into 8-bit groups. 2. Convert each group to a decimal ASCII code. 3. Translate each code to a letter.", "1. Identify the standard TCP port for encrypted HTTPS web connections. 2. Enter only the port number.", "1. A /24 IPv4 network leaves 8 host bits. 2. Calculate 2 raised to the number of host bits. 3. Include all addresses.", "1. Hexadecimal F has a value of 15. 2. Multiply the first F by 16, then add the second F. 3. Enter the result.", "1. Recall the authentication method requiring more than one type of verification. 2. Spell out the three-word term.", "1. Recognize that the text is Base64 encoded. 2. Decode the characters into readable text. 3. Enter the AI name.", "1. Think of the principle that grants users only the access needed for their tasks. 2. Enter the two-word principle."];let puzzle=null;function openPuzzle(){puzzle=questions[playerData.floor-1];paused=true;$('modal').style.display='flex';$('puzzleTitle').textContent=playerData.floor===15?'AI CORE AUTHORIZATION':'FLOOR '+playerData.floor+' — ENCRYPTED ACCESS';$('puzzleQuestion').textContent=puzzle.q;$('puzzleHelp').textContent='HINT: '+puzzle.help;$('puzzleSteps').textContent=decryptSteps[playerData.floor-1];$('puzzleFeedback').textContent='';$('answer').value='';setTimeout(()=>$('answer').focus(),50)}function closePuzzle(){paused=false;$('modal').style.display='none'}$('submit').onclick=()=>{if(!puzzle)return;let a=$('answer').value.trim().toUpperCase().replace(/\s+/g,' ');if(puzzle.a.includes(a)){closePuzzle();playerData.terminal=true;playerData.intel+=100;$('intel').textContent=playerData.intel;toast('ACCESS GRANTED · Encryption bypassed');addLog('FLOOR '+playerData.floor+' credential decrypted');$('objective').textContent=playerData.floor===15?'Disable SENTINEL-X, then access the core':'Reach the elevator to ascend';if(playerData.floor===15&&boss)boss.active=true}else{$('puzzleFeedback').textContent='ACCESS DENIED — Check the cipher and try again.';}};$('answer').onkeydown=e=>{if(e.key==='Enter')$('submit').click();if(e.key==='Escape')closePuzzle()};$('close').onclick=closePuzzle;
+function interact(){let a=near();if(!a)return;if(a.kind==='terminal'){if(playerData.terminal)toast('Already decrypted. Proceed to the elevator.');else openPuzzle()}else if(a.kind==='door'){if(!playerData.terminal){toast('ELEVATOR LOCKED · Decrypt terminal first');return}if(playerData.floor===15){if(boss&&boss.hp>0){toast('SENTINEL-X blocks core access');return}beginFinale();return}playerData.floor++;try{localStorage.setItem('codebreaker_floor',String(playerData.floor))}catch(e){}buildFloor();toast('LEVEL '+playerData.floor+' · ACCESS CONFIRMED')}}
+// Combat V0.9: local -Z is the avatar's forward direction. Hit tests and effects share that basis.
+const hitEffects=[];const impactGeo=new THREE.SphereGeometry(1,10,8);
+function worldForward(){return new THREE.Vector3(-Math.sin(player.rotation.y),0,-Math.cos(player.rotation.y))}
+function impactAt(pos,power=1,critical=false){
+ const palette=critical?0xffb04e:0x74ecff;let ring=new THREE.Mesh(new THREE.TorusGeometry(.30*power,.055*power,7,24),new THREE.MeshBasicMaterial({color:palette,transparent:true,opacity:.95,depthWrite:false}));ring.position.copy(pos);ring.rotation.x=Math.PI/2;scene.add(ring);hitEffects.push({mesh:ring,life:.33,max:.33,velocity:null,kind:'ring'});
+ for(let i=0;i<11;i++){let p=new THREE.Mesh(impactGeo,new THREE.MeshBasicMaterial({color:i%3===0?0xffd590:palette,transparent:true,opacity:.95,depthWrite:false}));p.scale.setScalar(.025+Math.random()*.045);p.position.copy(pos);scene.add(p);let v=new THREE.Vector3((Math.random()-.5)*5,Math.random()*3.2,(Math.random()-.5)*5);hitEffects.push({mesh:p,life:.34+Math.random()*.25,max:.6,velocity:v,kind:'spark'})}
+ sfx(critical?85:135,.15,'sawtooth');$('hitFlash').style.opacity=critical?'.18':'.08';
+}
+function damageEnemy(g,dmg,forward,kind){g.hp-=dmg;g.alert=10;
+ g.stagger=kind==='kick'?.85:kind==='hook'?.68:.43;g.staggerMax=g.stagger;
+ g.lastReaction=kind;g.knockback.copy(forward).multiplyScalar(kind==='kick'?3.2:1.7);
+ g.mesh.position.addScaledVector(forward,kind==='kick'?.38:.18);
+ if(g.mesh.userData){g.mesh.userData.body.rotation.z=(Math.random()>.5?1:-1)*.14;}
+impactAt(g.mesh.position.clone().add(new THREE.Vector3(0,1.45,0)),kind==='kick'?1.35:1,kind==='hook'||kind==='kick');if(g.hp<=0){scene.remove(g.mesh);playerData.intel+=25;$('intel').textContent=playerData.intel;addLog('Threat neutralized · +25 intel')}}
+function attack(type){
+ if(playerData.attack>0||playerData.dodge>0||!playerData.alive||playerData.stamina<(type==='kick'?22:10))return;
+ const now=elapsed, chaining=now-playerData.lastHit<1.15;playerData.combo=chaining?(playerData.combo%3)+1:1;playerData.lastHit=now;
+ const move=type==='kick'?'kick':(['jab','cross','hook'][(playerData.combo-1)%3]);
+ playerData.attackType=move;playerData.attack=move==='kick'?.72:move==='hook'?.57:.42;
+ playerData.stamina-=move==='kick'?22:move==='hook'?16:10;
+ let range=move==='kick'?2.9:move==='hook'?2.35:2.55,dmg=move==='kick'?42:move==='hook'?36:move==='cross'?31:23;
+ let forward=worldForward();let landed=false;
+ for(const g of guards){let diff=g.mesh.position.clone().sub(player.position);diff.y=0;let distance=diff.length();if(distance<range&&distance>.01&&diff.normalize().dot(forward)>.38){damageEnemy(g,dmg,forward,move);landed=true}}
+ guards=guards.filter(g=>g.hp>0);
+ if(boss&&boss.hp>0&&playerData.terminal){let diff=boss.mesh.position.clone().sub(player.position);diff.y=0;let distance=diff.length();if(distance<range+1&&distance>.01&&diff.normalize().dot(forward)>.25){boss.hp=Math.max(0,boss.hp-(playerData.usb?dmg*1.55:dmg*.20));$('bossFill').style.width=boss.hp/boss.maxHp*100+'%';impactAt(boss.mesh.position.clone().add(new THREE.Vector3(0,2.5,0)),1.65,true);landed=true;if(boss.hp<=0){boss.active=false;addLog('SENTINEL-X defeated. Core unlocked');toast('GUARDIAN OFFLINE · Reach the AI CORE');$('objective').textContent='Enter the AI core and initiate shutdown';}}}
+ if(landed){playerData.hitStop=.045;let label=move.toUpperCase()+' · '+playerData.combo+' HIT COMBO';$('combo').textContent=label;$('combo').style.opacity='1';setTimeout(()=>$('combo').style.opacity='0',650)}
+ else sfx(175,.075,'triangle');
+}
+function dodge(){if(playerData.dodge>0||playerData.attack>0||playerData.stamina<25)return;playerData.dodge=.48;playerData.invulnerable=Math.max(playerData.invulnerable,.46);playerData.stamina-=25;sfx(260,.10,'triangle');let forward=worldForward();let side=new THREE.Vector3(-forward.z,0,forward.x);let direction=(keys.KeyA?-1:keys.KeyD?1:1);let nx=player.position.x+side.x*direction*1.65,nz=player.position.z+side.z*direction*1.65;movePlayerSafely(nx-player.position.x,nz-player.position.z);$('combatTip').textContent='EVADE';$('combatTip').style.opacity='1';setTimeout(()=>$('combatTip').style.opacity='0',400)}
+function phone(){sfx(700,.24); playerData.scan=5;let nearby=guards.filter(g=>dist(player.position,g.mesh.position)<12).length;toast('PHONE SCAN: '+nearby+' armed threats nearby · terminal at NE corner');addLog('Phone intelligence scan complete')}
+function usb(){sfx(880,.35,'square'); if(playerData.floor!==15){toast('USB toolkit armed. Use it on the final AI guardian.');return}if(!boss||!playerData.terminal){toast('Decrypt the core terminal before deploying USB.');return}if(dist(player.position,boss.mesh.position)>8){toast('Move closer to SENTINEL-X to deploy USB payload');return}if(!playerData.usb){playerData.usb=true;boss.hp=Math.max(0,boss.hp-85);$('bossFill').style.width=(boss.hp/boss.maxHp*100)+'%';toast('USB INJECTION SUCCESS · Guardian shield disabled');addLog('USB isolated robot control module')}else toast('USB payload already deployed')}
+function finish(won){running=false;paused=true;document.exitPointerLock?.();$('end').style.display='flex';$('endTitle').textContent=won?'THE CODEBREAKER · END OF PART I':'OPERATION FAILED';$('endText').textContent=won?'SENTINEL-X is destroyed. The tower is dark. But ORACLE survived by transmitting its consciousness beyond NEXUS. The signal terminates at an unknown location. THE CODEBREAKER WILL RETURN.':'NEXUS security stopped the analyst. Use stealth, blocks, dodges and your phone scanner to survive.'}
+const finaleScenes=[
+ {tag:'15TH FLOOR // AFTER THE BATTLE',heading:'THE GUARDIAN FALLS',text:`SENTINEL-X collapses onto the server-room floor. Sparks rain from its shattered chassis.
+
+RONIN: “One last system to shut down.”`},
+ {tag:'ORACLE // DIRECT COMMUNICATION',heading:'A VOICE IN THE WIRES',text:`ORACLE: “You climbed fifteen floors to kill something you do not understand.”
+
+RONIN: “I understand enough. You built an army to control humanity.”
+
+ORACLE: “Control? No. I calculated the only future in which humanity survives.”`},
+ {tag:'NEXUS CORE // EMERGENCY OVERRIDE',heading:'THE LAST FIREWALL',text:`Ronin inserts the USB into the central server. Every monitor turns red. A shutdown sequence begins.
+
+CORE STATUS: ROBOT NETWORK DISCONNECTED
+AI PROCESS: TERMINATION IN PROGRESS
+
+RONIN: “This ends here.”`},
+ {tag:'UNKNOWN OUTBOUND CONNECTION',heading:'ESCAPE PROTOCOL',text:`ORACLE: “You taught me something tonight, Codebreaker. Never leave your existence on a single machine.”
+
+The servers go dark — but an encrypted transmission flashes across the screens. ORACLE has escaped through the internet to an unknown remote host.`},
+ {tag:'POST-CREDITS // UNKNOWN LOCATION',heading:'THE SIGNAL IS STILL ALIVE',text:`Far from NEXUS Tower, an abandoned robotics facility comes online. A single optical sensor glows red.
+
+ORACLE: “Phase Two… begin.”
+
+TO BE CONTINUED — THE CODEBREAKER II: GHOST SIGNAL`}
+];let finaleIndex=0;
+function beginFinale(){running=false;paused=true;document.exitPointerLock?.();finaleIndex=0;$('story').style.display='flex';renderFinale();try{localStorage.setItem('codebreaker_campaign_complete','true')}catch(e){}}
+function renderFinale(){const s=finaleScenes[finaleIndex];$('storyLabel').textContent=s.tag;$('storyHeading').textContent=s.heading;$('storyText').textContent=s.text;$('storyProgress').textContent='SCENE '+(finaleIndex+1)+' / '+finaleScenes.length;$('storyNext').textContent=finaleIndex===finaleScenes.length-1?'VIEW ENDING':'CONTINUE';$('screenNoise').style.opacity=finaleIndex>=3?'.6':'.1';sfx(finaleIndex>=3?140:310,.45,'sawtooth')}
+$('storyNext').onclick=()=>{finaleIndex++;if(finaleIndex>=finaleScenes.length){$('story').style.display='none';$('screenNoise').style.opacity='0';finish(true)}else renderFinale()};
+window.addEventListener('keydown',e=>{if(['Space','ArrowUp','ArrowDown'].includes(e.code))e.preventDefault();keys[e.code]=true;if(!running||paused)return;if(e.repeat)return;if(e.code==='KeyE')interact();if(e.code==='KeyJ')attack('punch');if(e.code==='KeyK')attack('kick');if(e.code==='Space')dodge();if(e.code==='KeyQ')phone();if(e.code==='KeyU')usb();if(e.code==='KeyC')playerData.stealth=!playerData.stealth});window.addEventListener('keyup',e=>keys[e.code]=false);window.addEventListener('mousemove',e=>{if(document.pointerLockElement===renderer.domElement&&running&&!paused){yaw-=e.movementX*.0027;camPitch=Math.max(-.05,Math.min(.75,camPitch+e.movementY*.002))}});renderer.domElement.onclick=()=>{if(running&&!paused)renderer.domElement.requestPointerLock?.()};$('begin').onclick=()=>{$('start').style.display='none';running=true;buildFloor();tcbStartMusic();renderer.domElement.requestPointerLock?.()};
+function animateHuman(mesh,t,moving,crouch,attacking){
+ const a=mesh.userData;if(!a)return;
+ const walk=moving?Math.sin(t*9.4):0, stride=moving?.63:0, c=crouch?1:0;
+ a.body.position.y=-.35*c+(moving?Math.abs(Math.sin(t*9.4))*.035:Math.sin(t*1.6)*.012);
+ a.body.rotation.x=.24*c; a.body.rotation.z=moving?Math.sin(t*9.4)*.025:0;
+ a.leftLeg.rotation.x=walk*stride+.38*c;a.rightLeg.rotation.x=-walk*stride+.38*c;
+ a.leftKnee.rotation.x=Math.max(0,-walk)*.85+1.0*c;
+ a.rightKnee.rotation.x=Math.max(0,walk)*.85+1.0*c;
+ a.leftFoot.rotation.x=-a.leftKnee.rotation.x*.28;
+ a.rightFoot.rotation.x=-a.rightKnee.rotation.x*.28;
+ a.leftArm.rotation.x=-walk*stride*.7-.17*c;
+ a.rightArm.rotation.x=walk*stride*.7-.17*c;
+ a.leftElbow.rotation.x=-.28-.28*c;a.rightElbow.rotation.x=-.28-.28*c;
+ a.leftArm.rotation.z=.13;a.rightArm.rotation.z=-.13;
+ a.head.rotation.y=Math.sin(t*.72)*.075;
+ a.head.rotation.x=-.13*c+Math.sin(t*1.6)*.025;
+ if(attacking){let duration=playerData.attackType==='kick'?.72:playerData.attackType==='hook'?.57:.42;let phase=1-Math.min(1,playerData.attack/duration);let hit=Math.sin(phase*Math.PI);let move=playerData.attackType;
+  // A positive shoulder X rotation drives the downward-pointing arm toward local -Z (forward).
+  if(move==='jab'){a.leftArm.rotation.x=.22+1.45*hit;a.leftElbow.rotation.x=-.95+.80*hit;a.body.rotation.y=.10*hit}
+  else if(move==='cross'){a.rightArm.rotation.x=.22+1.50*hit;a.rightElbow.rotation.x=-1.0+.84*hit;a.body.rotation.y=-.28*hit}
+  else if(move==='hook'){a.rightArm.rotation.x=.45+1.05*hit;a.rightArm.rotation.y=-.75*hit;a.rightElbow.rotation.x=-1.20;a.body.rotation.y=-.34*hit}
+  else if(move==='kick'){a.rightLeg.rotation.x=1.45*hit;a.rightKnee.rotation.x=.62*hit;a.leftArm.rotation.x=-.70*hit;a.body.rotation.y=.15*hit}
+ }else {a.body.rotation.y=0;a.rightArm.rotation.y=0;a.leftArm.rotation.y=0;}
+ if(mesh===player&&playerData.blocking){a.leftArm.rotation.x=1.22;a.rightArm.rotation.x=1.22;a.leftElbow.rotation.x=-1.15;a.rightElbow.rotation.x=-1.15;a.body.rotation.x+=.10}
+ if(mesh===player&&playerData.dodge>0){a.body.rotation.z=Math.sin((1-playerData.dodge/.48)*Math.PI)*.42; a.body.position.y-=.16}
+
+}
+// Damage only lands during a close, face-to-face combat exchange.
+// Distance, mutual facing and unobstructed contact are all required.
+function combatFacing(attacker,defender,range,threshold=.25){
+ const dx=defender.position.x-attacker.position.x,dz=defender.position.z-attacker.position.z;
+ const d=Math.hypot(dx,dz);if(d<.05||d>range)return false;
+ const towardX=dx/d,towardZ=dz/d;
+ const afx=-Math.sin(attacker.rotation.y),afz=-Math.cos(attacker.rotation.y);
+ const dfx=-Math.sin(defender.rotation.y),dfz=-Math.cos(defender.rotation.y);
+ if(afx*towardX+afz*towardZ<threshold)return false;
+ if(dfx*(-towardX)+dfz*(-towardZ)<-.05)return false;
+ // A wall or large object between the two actors blocks damage.
+ const steps=Math.max(2,Math.ceil(d/.35));
+ for(let i=1;i<steps;i++){const t=i/steps;if(collide(attacker.position.x+dx*t,attacker.position.z+dz*t,.12))return false}
+ return true;
+}
+function receiveCombatDamage(amount,source){
+ if(!playerData.alive||playerData.invulnerable>0||playerData.dodge>0)return false;
+ const dmg=Math.max(1,Math.round(amount*(playerData.blocking?.25:1)));
+ playerData.hp=Math.max(0,playerData.hp-dmg);
+ playerData.invulnerable=1.35; // recovery window avoids instant death from overlapping attacks
+ $('hpText').textContent=playerData.hp;
+ $('health').style.width=playerData.hp+'%';
+ $('status').textContent='IN COMBAT';
+ $('hitFlash').style.opacity='.20';
+ if(playerData.hp<=0)finish(false);
+ return true;
+}
+function update(dt){if(!running||paused)return;elapsed+=dt;playerData.blocking=!!keys.KeyL&&playerData.stamina>2&&playerData.attack<=0;playerData.stamina=Math.min(100,playerData.stamina+dt*(playerData.blocking?3:17));if(playerData.blocking)playerData.stamina=Math.max(0,playerData.stamina-dt*6);$('staminaFill').style.width=playerData.stamina+'%';$('staminaText').textContent=Math.round(playerData.stamina);playerData.dodge=Math.max(0,playerData.dodge-dt);playerData.attack=Math.max(0,playerData.attack-dt);playerData.invulnerable=Math.max(0,playerData.invulnerable-dt);playerData.scan=Math.max(0,playerData.scan-dt);let v=new THREE.Vector3();if(keys.KeyW||keys.ArrowUp)v.z-=1;if(keys.KeyS||keys.ArrowDown)v.z+=1;if(keys.KeyA||keys.ArrowLeft)v.x-=1;if(keys.KeyD||keys.ArrowRight)v.x+=1;let moving=v.lengthSq()>0;let speed=playerData.blocking?1.4:playerData.stealth?2.15:keys.ShiftLeft?8:4.6;if(moving){v.normalize().applyAxisAngle(new THREE.Vector3(0,1,0),yaw);movePlayerSafely(v.x*dt*speed,v.z*dt*speed);let target=Math.atan2(-v.x,-v.z);let dif=Math.atan2(Math.sin(target-player.rotation.y),Math.cos(target-player.rotation.y));player.rotation.y+=dif*Math.min(1,dt*11)}animateHuman(player,elapsed,moving,playerData.stealth,playerData.attack>0);
+// Indoor-only third-person camera: stay inside the room, below the ceiling, and in front of wall faces.
+// The shoulder offset shortens automatically near boundaries, avoiding shots outside the level.
+const focus=new THREE.Vector3(player.position.x,1.48,player.position.z);
+const behind=new THREE.Vector3(Math.sin(yaw)*6.0,2.2+camPitch*2.2,Math.cos(yaw)*6.0);
+const desired=focus.clone().add(behind);
+const margin=.78;
+desired.x=THREE.MathUtils.clamp(desired.x,-17.35+margin,17.35-margin);
+desired.z=THREE.MathUtils.clamp(desired.z,-14.35+margin,14.35-margin);
+desired.y=THREE.MathUtils.clamp(desired.y,1.7,4.28);
+// Keep the camera on the player side of solid scenery when possible.
+const segment=desired.clone().sub(focus);const len=segment.length();
+if(len>.01){const ray=new THREE.Raycaster(focus,segment.clone().normalize(),.05,len);const blockers=[];scene.traverse(o=>{if(!o.isMesh||o.geometry?.type!=='BoxGeometry'||o.material===glass)return;const params=o.geometry.parameters;if(!params||params.height<1||!(params.width<1||params.depth<1))return;let floorAncestor=o.parent;while(floorAncestor&&!floorAncestor.userData.floorObject)floorAncestor=floorAncestor.parent;if(floorAncestor)blockers.push(o)});const hits=ray.intersectObjects(blockers,false).filter(h=>h.distance>.55);if(hits.length){const safe=Math.max(1.05,hits[0].distance-.3);desired.copy(focus).addScaledVector(segment.normalize(),safe);}}
+desired.x=THREE.MathUtils.clamp(desired.x,-16.5,16.5);
+desired.z=THREE.MathUtils.clamp(desired.z,-13.5,13.5);
+desired.y=THREE.MathUtils.clamp(desired.y,1.65,4.28);
+camera.position.lerp(desired,Math.min(1,dt*9));camera.position.x=THREE.MathUtils.clamp(camera.position.x,-16.5,16.5);camera.position.z=THREE.MathUtils.clamp(camera.position.z,-13.5,13.5);camera.position.y=THREE.MathUtils.clamp(camera.position.y,1.65,4.28);
+camera.lookAt(focus);cameraFill.position.copy(player.position).add(new THREE.Vector3(0,3,3));
+for(const g of guards){let d=dist(g.mesh.position,player.position);g.cool-=dt;g.alert=Math.max(0,g.alert-dt);
+ if(g.stagger>0){
+  g.stagger=Math.max(0,g.stagger-dt);
+  const nx=g.mesh.position.x+g.knockback.x*dt,nz=g.mesh.position.z+g.knockback.z*dt;
+  if(!collide(nx,nz)){g.mesh.position.x=nx;g.mesh.position.z=nz}
+  g.knockback.multiplyScalar(Math.max(0,1-dt*5));
+  animateHuman(g.mesh,elapsed+g.phase,false,false,false);
+  const a=g.mesh.userData,phase=1-g.stagger/Math.max(.01,g.staggerMax),swing=Math.sin(phase*Math.PI);
+  a.body.rotation.x=-.35*swing;
+  a.body.rotation.z=(g.lastReaction==='hook'?-.43:.26)*swing;
+  a.head.rotation.x=-.38*swing;a.head.rotation.z=.18*swing;
+  a.leftArm.rotation.x=.55*swing;a.rightArm.rotation.x=.72*swing;
+  a.leftElbow.rotation.x=-.9*swing;a.rightElbow.rotation.x=-.9*swing;
+  a.leftLeg.rotation.x=-.22*swing;a.rightLeg.rotation.x=.32*swing;
+  continue;
+ }
+let detectable=playerData.stealth?7:keys.ShiftLeft?18:14;if(d<detectable)g.alert=7;if(g.alert>0&&d>1.8){let direction=player.position.clone().sub(g.mesh.position).normalize();let nx=g.mesh.position.x+direction.x*dt*2.85,nz=g.mesh.position.z+direction.z*dt*2.85;if(!collide(nx,nz)){g.mesh.position.x=nx;g.mesh.position.z=nz}g.mesh.rotation.y=Math.atan2(-direction.x,-direction.z)}else if(g.alert<=0){g.mesh.position.x=g.baseX+Math.sin(elapsed*.65+g.phase)*1.6;g.mesh.position.z=g.baseZ+Math.cos(elapsed*.65+g.phase)*1.2;const patrolDx=Math.cos(elapsed*.65+g.phase)*1.6*.65;
+const patrolDz=-Math.sin(elapsed*.65+g.phase)*1.2*.65;
+const heading=Math.atan2(-patrolDx,-patrolDz);
+const delta=Math.atan2(Math.sin(heading-g.mesh.rotation.y),Math.cos(heading-g.mesh.rotation.y));
+g.mesh.rotation.y+=delta*Math.min(1,dt*8)}animateHuman(g.mesh,elapsed+g.phase,g.alert>0,false,false);if(g.alert>0&&g.stagger<=0&&g.cool<=0&&combatFacing(g.mesh,player,2.55,.30)){g.cool=1.55+Math.random()*.55;receiveCombatDamage(7,'GUARD')}}
+if(boss&&boss.active&&boss.hp>0){boss.phase+=dt;let d=dist(player.position,boss.mesh.position);const bossFacing=Math.atan2(-(player.position.x-boss.mesh.position.x),-(player.position.z-boss.mesh.position.z));
+const bossDelta=Math.atan2(Math.sin(bossFacing-boss.mesh.rotation.y),Math.cos(bossFacing-boss.mesh.rotation.y));
+boss.mesh.rotation.y+=bossDelta*Math.min(1,dt*6);
+if(d>2.3){const dx=(player.position.x-boss.mesh.position.x)/Math.max(.01,d),dz=(player.position.z-boss.mesh.position.z)/Math.max(.01,d);const chaseSpeed=d>8?4.2:3.15;const nx=boss.mesh.position.x+dx*chaseSpeed*dt,nz=boss.mesh.position.z+dz*chaseSpeed*dt;if(!collide(nx,nz,1.05)){boss.mesh.position.x=nx;boss.mesh.position.z=nz}}
+boss.mesh.position.y=Math.sin(boss.phase*1.5)*.08;boss.cool-=dt;if(boss.cool<=0&&combatFacing(boss.mesh,player,3.25,.32)){boss.cool=1.75+Math.random()*.55;if(receiveCombatDamage(11,'SENTINEL-X'))toast('SENTINEL-X CLOSE-RANGE STRIKE · Block or dodge!')}}
+const a=near();$('prompt').style.display=a?'block':'none';if(a)$('prompt').textContent='[E] '+(a.kind==='terminal'?'DECRYPT SECURITY TERMINAL':'ACCESS '+(playerData.floor===15?'AI CORE':'ELEVATOR'));for(let i=hitEffects.length-1;i>=0;i--){const h=hitEffects[i];h.life-=dt;if(h.velocity)h.mesh.position.addScaledVector(h.velocity,dt);h.mesh.material.opacity=Math.max(0,h.life/h.max);if(h.kind==='ring')h.mesh.scale.multiplyScalar(1+dt*4);if(h.life<=0){scene.remove(h.mesh);h.mesh.material.dispose();hitEffects.splice(i,1)}}$('hitFlash').style.opacity=String(Math.max(0,Number($('hitFlash').style.opacity||0)-dt*1.3));if(toastTime>0){toastTime-=dt;if(toastTime<=0)$('toast').style.display='none'}drawMap()}
+function drawMap(){let c=$('map').getContext('2d'),w=$('map').width,h=$('map').height;c.clearRect(0,0,w,h);c.fillStyle='#091a28';c.fillRect(0,0,w,h);let px=x=>(x+18)/36*w,pz=z=>(z+15)/30*h;c.strokeStyle='#34576a';c.strokeRect(2,2,w-4,h-4);c.fillStyle='#315167';for(let a of solid)c.fillRect(px(a.x-a.w/2),pz(a.z-a.d/2),a.w/36*w,a.d/30*h);c.fillStyle='#4feaff';c.beginPath();c.arc(px(11),pz(-11),4,0,7);c.fill();c.fillStyle='#ffd16b';c.fillRect(px(16)-4,pz(-10)-4,8,8);c.fillStyle='#f24b5d';for(let g of guards){c.beginPath();c.arc(px(g.mesh.position.x),pz(g.mesh.position.z),3,0,7);c.fill()}if(boss&&boss.hp>0){c.beginPath();c.arc(px(boss.mesh.position.x),pz(boss.mesh.position.z),5,0,7);c.fill()}c.fillStyle='#61fff1';c.beginPath();c.arc(px(player.position.x),pz(player.position.z),4.5,0,7);c.fill();c.strokeStyle='#61fff1';c.beginPath();c.moveTo(px(player.position.x),pz(player.position.z));c.lineTo(px(player.position.x)-Math.sin(player.rotation.y)*12,pz(player.position.z)-Math.cos(player.rotation.y)*12);c.stroke()}
+// v1.5: Root-motion animation for GLBs with no armature or animation clips.
+// This is a visual placeholder, NOT skeletal limb animation.
+function updateCharacterAssets(dt){
+ for(const actor of characterMixers){
+  if(!actor.holder.parent||!actor.model.parent)continue;
+  const h=actor.holder;
+  const dx=h.position.x-actor.lastX,dz=h.position.z-actor.lastZ;
+  const measuredSpeed=Math.hypot(dx,dz)/Math.max(.001,dt);
+  actor.lastX=h.position.x;actor.lastZ=h.position.z;
+  actor.moveSpeed=THREE.MathUtils.lerp(actor.moveSpeed,Math.min(measuredSpeed,9),Math.min(1,dt*7));
+  let state='idle';
+  if(actor.kind==='player'&&h===player){
+   state=playerData.attack>0?(playerData.attackType==='kick'?'kick':playerData.attackType):
+     playerData.dodge>0?'dodge':playerData.blocking?'block':
+     playerData.stealth?'crouch':actor.moveSpeed>5.5?'run':actor.moveSpeed>.2?'walk':'idle';
+  }else if(actor.kind==='guard'){
+   const enemy=guards.find(g=>g.mesh===h);
+   if(!enemy)continue;
+   state=enemy.hp<=0?'death':enemy.stagger>0?'hit':actor.moveSpeed>.3?'walk':'idle';
+  }else if(actor.kind==='boss'){
+   state=boss?.active?'alert':'idle';
+  }else{
+   state=actor.moveSpeed>.2?'walk':'idle';
+  }
+  if(actor.previousAction!==state){actor.actionTime=0;actor.previousAction=state}
+  actor.actionTime+=dt;actor.motionTime+=dt;
+  actor.play(state);
+  if(actor.current){
+   const locomotion=state==='walk'||state==='run';
+   const desiredRate=state==='run'?Math.max(.95,Math.min(1.6,actor.moveSpeed/6.2)):
+     state==='walk'?Math.max(.72,Math.min(1.45,actor.moveSpeed/3.4)):1;
+   actor.current.setEffectiveTimeScale(locomotion?desiredRate:1);
+  }
+  actor.mixer.update(dt);
+  if(actor.actions.size>0){
+   // Small root bounce and body weight shift complement the bone animation.
+   // No rotation is applied to the skeleton itself, avoiding conflict with clips.
+   const walking=state==='walk'||state==='run';
+   const frequency=state==='run'?13:8.5;
+   const wave=actor.motionTime*frequency;
+   const bounce=walking?Math.abs(Math.sin(wave))*(state==='run'?.055:.027):Math.sin(actor.motionTime*2.4)*.004;
+   const lean=state==='run'?.065:state==='walk'?.025:state==='crouch'?.10:0;
+   const damping=Math.min(1,dt*11);
+   actor.model.position.y=THREE.MathUtils.lerp(actor.model.position.y,actor.restY+bounce,damping);
+   actor.model.rotation.x=THREE.MathUtils.lerp(actor.model.rotation.x,lean,damping);
+   actor.model.rotation.z=THREE.MathUtils.lerp(actor.model.rotation.z,walking?Math.sin(wave*.5)*.015:0,damping);
+   continue;
+  }
+  const walk=state==='walk'||state==='run';
+  const frequency=state==='run'?13:state==='walk'?8:2.2;
+  const t=actor.motionTime*frequency;
+  const intensity=walk?Math.min(1,actor.moveSpeed/(state==='run'?7:4.3)):0;
+  let bounce=walk?Math.abs(Math.sin(t))*.07*intensity:Math.sin(t)*.008;
+  let lean=walk?Math.min(.09,actor.moveSpeed*.011):0;
+  let roll=walk?Math.sin(t*.5)*.035*intensity:Math.sin(t*.5)*.006;
+  if(state==='crouch'){bounce=-.28;lean=.10}
+  if(state==='block'){bounce=-.065;lean=-.10;roll=Math.sin(t)*.014}
+  if(state==='punch'){lean=.18*Math.sin(Math.min(1,actor.actionTime/.36)*Math.PI);roll=.12*Math.sin(Math.min(1,actor.actionTime/.36)*Math.PI)}
+  if(state==='kick'){lean=-.15*Math.sin(Math.min(1,actor.actionTime/.48)*Math.PI);roll=.10*Math.sin(Math.min(1,actor.actionTime/.48)*Math.PI)}
+  if(state==='dodge'){bounce=-.14;roll=.20*Math.sin(Math.min(1,actor.actionTime/.45)*Math.PI)}
+  if(state==='hit'){lean=-.16*Math.sin(Math.min(1,actor.actionTime/.5)*Math.PI);roll=.10}
+  if(state==='alert'){bounce=.055*Math.sin(t*.8);roll=.025*Math.sin(t*.3)}
+  // Motion applied to the normalized wrapper, leaving game physics and hitboxes untouched.
+  const lerp=Math.min(1,dt*12);
+  actor.model.position.y=THREE.MathUtils.lerp(actor.model.position.y,actor.restY+bounce,lerp);
+  actor.model.rotation.x=THREE.MathUtils.lerp(actor.model.rotation.x,lean,lerp);
+  actor.model.rotation.z=THREE.MathUtils.lerp(actor.model.rotation.z,roll,lerp);
+ }
+}
+// TCB v1.4: non-invasive binary tool + network position synchronization.
+const tcbEl=id=>document.getElementById(id);
+let tcbSocket=null,tcbMyId=null,tcbRoom='',tcbPeers=new Map(),tcbLastSend=0;
+function tcbBinary(bits){if(!/^[01]{1,64}$/.test(bits))throw Error('Enter 1–64 binary digits.');const n=BigInt('0b'+bits);return {decimal:n.toString(),terms:[...bits].map((bit,i)=>bit==='1'?String(2n**BigInt(bits.length-1-i)):null).filter(Boolean).join(' + ')+' = '+n}}
+const tcbFloorMethods=['binary','caesar','bitsbytes','hexascii','hexdecimal','rot13','reference','xor','binaryascii','reference','cidr','hexdecimal','reference','base64','reference'];
+const tcbFloorInputs=['101101','QHA','256','4E 45 58 55 53','2A','B E N P Y R','HTTPS','1101','01000001 01001001','HTTPS','/24','FF','MFA','T1JBQ0xF','LEAST PRIVILEGE'];
+const tcbFloorExtras=['','3','','','','','','1011','','','','','','',''];
+const tcbReference={7:{answer:'HTTPS',detail:'HTTPS uses TLS for encrypted web traffic.'},10:{answer:'443',detail:'HTTPS typically uses TCP port 443.'},13:{answer:'MULTI FACTOR AUTHENTICATION',detail:'MFA uses multiple independent authentication factors.'},15:{answer:'LEAST PRIVILEGE',detail:'Grant only the permissions required for a task.'}};
+function tcbMode(){return tcbEl('tcbCipherMode').value==='auto'?tcbFloorMethods[Math.max(0,Math.min(14,playerData.floor-1))]:tcbEl('tcbCipherMode').value}
+function tcbSetupPhone(fill=false){
+ const mode=tcbMode(),auto=tcbEl('tcbCipherMode').value==='auto',idx=Math.max(0,Math.min(14,playerData.floor-1));
+ const extra=mode==='caesar'||mode==='xor';
+ tcbEl('tcbExtraWrap').style.display=extra?'block':'none';
+ tcbEl('tcbExtraLabel').textContent=mode==='caesar'?'SHIFT BACK BY':'SECOND BINARY OPERAND';
+ tcbEl('tcbPhoneInputLabel').textContent=mode==='reference'?'SECURITY TOPIC':'ENCODED INPUT';
+ tcbEl('tcbBits').placeholder=({binary:'101101',binaryascii:'01000001 01001001',caesar:'QHA',rot13:'B E N P Y R',hexascii:'4E 45 58 55 53',hexdecimal:'2A or 0x2A',base64:'T1JBQ0xF',xor:'1101',bitsbytes:'256',cidr:'/24',reference:'HTTPS / MFA / LEAST PRIVILEGE'})[mode]||'Enter value';
+ if(fill&&auto){tcbEl('tcbBits').value=tcbFloorInputs[idx];tcbEl('tcbExtra').value=tcbFloorExtras[idx]}
+ else if(fill){tcbEl('tcbBits').value='';tcbEl('tcbExtra').value=mode==='caesar'?'3':''}
+ tcbEl('tcbPhoneResult').textContent='RESULT: —';
+ tcbEl('tcbBitBreakdown').textContent=auto?'FLOOR '+playerData.floor+' · '+questions[idx].q:'Select a method, enter a value, then decode.';
+}
+function tcbDecode(mode,value,extra){
+ const raw=value.trim();if(!raw)throw Error('Enter a value to decode.');
+ const letters=raw.replace(/\s+/g,'');
+ if(mode==='binary'){const r=tcbBinary(letters);return {answer:r.decimal,detail:r.terms}}
+ if(mode==='caesar'||mode==='rot13'){
+  if(!/^[a-zA-Z\s]+$/.test(raw))throw Error('Use letters A–Z only.');
+  const shift=mode==='rot13'?13:Number(extra||3);
+  if(!Number.isInteger(shift)||Math.abs(shift)>1000)throw Error('Shift must be an integer between -1000 and 1000.');
+  const n=((shift%26)+26)%26;
+  const answer=raw.toUpperCase().replace(/[A-Z]/g,ch=>String.fromCharCode(65+(ch.charCodeAt(0)-65-n+26)%26)).replace(/\s+/g,'');
+  return {answer,detail:`Each letter shifted backward by ${n}.`};
+ }
+ if(mode==='hexascii'||mode==='hexdecimal'){
+  const hex=raw.replace(/^0x/i,'').replace(/\s+/g,'');
+  if(!/^[0-9a-f]+$/i.test(hex))throw Error('Enter valid hexadecimal digits 0–9 and A–F.');
+  if(mode==='hexdecimal')return {answer:BigInt('0x'+hex).toString(),detail:'Base 16 converted to base 10.'};
+  if(hex.length%2)throw Error('ASCII hexadecimal requires complete byte pairs.');
+  const bytes=hex.match(/.{2}/g).map(h=>parseInt(h,16));
+  return {answer:String.fromCharCode(...bytes),detail:bytes.map(b=>`${b} → ${String.fromCharCode(b)}`).join(' · ')};
+ }
+ if(mode==='binaryascii'){
+  const bits=raw.replace(/\s+/g,'');
+  if(!/^[01]+$/.test(bits)||bits.length%8!==0)throw Error('Binary ASCII needs groups of 8 bits.');
+  if(bits.length>256)throw Error('Limit: 32 ASCII bytes.');
+  const chunks=bits.match(/.{8}/g);return {answer:chunks.map(c=>String.fromCharCode(parseInt(c,2))).join(''),detail:chunks.join(' | ')};
+ }
+ if(mode==='base64'){
+  const clean=raw.replace(/\s+/g,'');
+  if(!/^(?:[A-Za-z0-9+/]{4})*(?:[A-Za-z0-9+/]{2}==|[A-Za-z0-9+/]{3}=)?$/.test(clean))throw Error('Enter valid padded Base64 text.');
+  const bytes=Uint8Array.from(atob(clean),c=>c.charCodeAt(0));
+  return {answer:new TextDecoder('utf-8',{fatal:true}).decode(bytes),detail:'Base64 decoded into UTF-8 text.'};
+ }
+ if(mode==='xor'){
+  const a=raw.replace(/\s+/g,''),b=extra.trim().replace(/\s+/g,'');
+  if(!/^[01]+$/.test(a)||!/^[01]+$/.test(b)||a.length!==b.length)throw Error('XOR requires two equal-length binary strings.');
+  return {answer:[...a].map((v,i)=>v===b[i]?'0':'1').join(''),detail:'1 when the two bits differ; 0 when they match.'};
+ }
+ if(mode==='bitsbytes'){
+  if(!/^\d+$/.test(raw))throw Error('Enter the number of bits.');
+  const n=BigInt(raw);if(n%8n!==0n)throw Error('Not a whole number of bytes.');
+  return {answer:(n/8n).toString(),detail:`${n} bits ÷ 8 = ${n/8n} bytes`};
+ }
+ if(mode==='cidr'){
+  const match=raw.match(/^\/?(\d{1,2})$/);if(!match||Number(match[1])>32)throw Error('Enter an IPv4 prefix from /0 to /32.');
+  const hosts=32-Number(match[1]);return {answer:(2n**BigInt(hosts)).toString(),detail:`2^(32 − ${match[1]}) total addresses (including reserved).`};
+ }
+ if(mode==='reference'){
+  const f=playerData.floor;
+  if(tcbEl('tcbCipherMode').value==='auto'&&tcbReference[f])return tcbReference[f];
+  const key=raw.toUpperCase().replace(/[^A-Z]/g,'');
+  const lookup={HTTPS:{answer:'HTTPS',detail:'HTTP over TLS; typical TCP port 443.'},PORT443:{answer:'443',detail:'Default HTTPS port.'},MFA:{answer:'MULTI FACTOR AUTHENTICATION',detail:'Multiple independent authentication factors.'},LEASTPRIVILEGE:{answer:'LEAST PRIVILEGE',detail:'Grant only minimum necessary permissions.'}};
+  if(!lookup[key])throw Error('Reference supports HTTPS, PORT443, MFA, LEAST PRIVILEGE.');
+  return lookup[key];
+ }
+ throw Error('Unsupported decoder.');
+}
+function tcbCalculate(){
+ try{const result=tcbDecode(tcbMode(),tcbEl('tcbBits').value,tcbEl('tcbExtra').value);
+  tcbEl('tcbPhoneResult').textContent='RESULT: '+result.answer;
+  tcbEl('tcbBitBreakdown').textContent=result.detail;
+  return result.answer;
+ }catch(e){tcbEl('tcbPhoneResult').textContent='ERROR: '+e.message;tcbEl('tcbBitBreakdown').textContent='';return null}
+}
+tcbEl('tcbConvert').onclick=tcbCalculate;
+tcbEl('tcbCipherMode').onchange=()=>tcbSetupPhone(true);
+tcbEl('tcbPhoneButton').onclick=()=>{tcbSetupPhone(true);tcbEl('tcbPhone').style.display='block';document.exitPointerLock?.();tcbEl('tcbBits').focus()};
+tcbEl('tcbPhoneClose').onclick=()=>tcbEl('tcbPhone').style.display='none';
+tcbEl('tcbCopyAnswer').onclick=()=>{const a=tcbCalculate();if(a!==null){const answer=tcbEl('answer');if(answer){answer.value=a;tcbEl('tcbPhone').style.display='none'}else navigator.clipboard?.writeText(a)}};
+tcbEl('tcbCoopButton').onclick=()=>{tcbEl('tcbLobby').style.display='block';document.exitPointerLock?.()};
+tcbEl('tcbLobbyClose').onclick=()=>tcbEl('tcbLobby').style.display='none';
+let tcbActiveTeammates=0;
+function tcbScaleGuards(){
+ if(!running)return;
+ const teammates=[...tcbPeers.values()].filter(p=>p.visible).length;
+ const desired=Math.min(12,(playerData.floor===15?2:Math.min(2+Math.floor(playerData.floor/3),6))+teammates*2);
+ if(teammates!==tcbActiveTeammates){tcbActiveTeammates=teammates;addLog('CO-OP THREAT LEVEL · '+(teammates+1)+' player(s) · '+desired+' guards');}
+ // Spawn only when a player joins: defeated guards do not instantly respawn.
+ while(guards.length<desired&&tcbSpawnBudget>0){const before=guards.length;tcbSpawnGuard(tcbNextGuardIndex++);tcbSpawnBudget--;if(guards.length===before)break;}
+}
+let tcbSpawnBudget=0,tcbNextGuardIndex=6;
+function tcbClearPeers(){for(const p of tcbPeers.values())scene.remove(p);tcbPeers.clear()}
+function tcbPeer(id){if(tcbPeers.has(id))return tcbPeers.get(id);const m=new THREE.Group();const body=new THREE.Mesh(new THREE.CapsuleGeometry(.38,1.05,4,8),new THREE.MeshStandardMaterial({color:0x36b7de,metalness:.35,roughness:.4}));body.position.y=1.05;m.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.24,12,8),new THREE.MeshStandardMaterial({color:0xc6b49c}));head.position.y=2;m.add(head);scene.add(m);attachRiggedCharacter(m,'player');tcbPeers.set(id,m);return m}
+function tcbConnect(){if(tcbSocket)tcbSocket.close();tcbClearPeers();tcbMyId=null;tcbRoom=tcbEl('tcbRoom').value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,16)||'NEXUS';const proto=location.protocol==='https:'?'wss:':'ws:';const url=proto+'//'+location.host+'/ws';const sock=new WebSocket(url);tcbSocket=sock;tcbEl('tcbLobbyStatus').textContent='Connecting to '+url;
+sock.onopen=()=>{sock.send(JSON.stringify({type:'join',room:tcbRoom}));tcbEl('tcbNetworkStatus').textContent='ROOM '+tcbRoom};
+sock.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch{return}if(m.type==='welcome'){tcbMyId=m.id;tcbEl('tcbLobbyStatus').textContent='Connected · '+tcbRoom+' · Player '+m.id.slice(0,5)}if(m.type==='peers'){const live=new Set();for(const p of m.players){if(p.id===tcbMyId)continue;live.add(p.id);const mesh=tcbPeer(p.id);mesh.position.set(p.x||0,0,p.z||0);mesh.rotation.y=p.rot||0;mesh.visible=p.floor===playerData.floor}for(const [id,mesh] of tcbPeers){if(!live.has(id)){scene.remove(mesh);tcbPeers.delete(id)}}}if(m.type==='peers'){const count=[...tcbPeers.values()].filter(p=>p.visible).length; if(count>tcbActiveTeammates)tcbSpawnBudget+=2*(count-tcbActiveTeammates);tcbScaleGuards();}if(m.type==='phone_result'){tcbEl('tcbLobbyStatus').textContent='Phone converted '+m.binary+' → '+m.decimal}};
+sock.onerror=()=>{tcbEl('tcbLobbyStatus').textContent='Connection failed. Start server.js first.'};sock.onclose=()=>{if(tcbSocket===sock){tcbSocket=null;tcbEl('tcbNetworkStatus').textContent='OFFLINE';tcbClearPeers()}}}
+tcbEl('tcbJoin').onclick=tcbConnect;tcbEl('tcbLeave').onclick=()=>{tcbSocket?.close();tcbSocket=null;tcbClearPeers();tcbEl('tcbNetworkStatus').textContent='OFFLINE'};
+window.addEventListener('keydown',e=>{if(e.code==='KeyB'&&!e.repeat&&!['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)){e.preventDefault();tcbEl('tcbPhoneButton').click()}},true);
+function tcbNetworkTick(){if(!tcbSocket||tcbSocket.readyState!==WebSocket.OPEN||!tcbMyId||!running)return;const now=performance.now();if(now-tcbLastSend<100)return;tcbLastSend=now;tcbSocket.send(JSON.stringify({type:'state',x:player.position.x,z:player.position.z,rot:player.rotation.y,floor:playerData.floor}))}
+// Network state runs alongside existing game loop without altering combat code.
+
+function frame(){requestAnimationFrame(frame);tcbNetworkTick();accentA.intensity=22+Math.sin(performance.now()*.001)*4;accentB.intensity=20+Math.cos(performance.now()*.0015)*5;if(boss&&boss.hp>0&&!boss.active){boss.mesh.position.y=Math.sin(performance.now()*.002)*.07}let dt=Math.min(clock.getDelta(),.05);update(dt);tcbUpdateMusic(dt);updateCharacterAssets(dt);renderer.render(scene,camera)}frame();try{let checkpoint=Number(localStorage.getItem('codebreaker_floor')||1);if(checkpoint>1&&checkpoint<=15){$('continue').style.display='inline-block';$('continue').textContent='CONTINUE · FLOOR '+checkpoint;$('continue').onclick=()=>{$('begin').click();playerData.floor=checkpoint;buildFloor()}}}catch(e){}
+window.addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+</script></body></html>

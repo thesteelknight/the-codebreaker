@@ -1,0 +1,12 @@
+{
+  "name": "the-codebreaker-v22-fair-combat",
+  "version": "2.2.0",
+  "private": true,
+  "description": "Codebreaker browser game with 2-player room prototype and binary phone",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
