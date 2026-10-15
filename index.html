@@ -616,9 +616,25 @@ function tcbClearPeers(){for(const p of tcbPeers.values())scene.remove(p);tcbPee
 function tcbPeer(id){if(tcbPeers.has(id))return tcbPeers.get(id);const m=new THREE.Group();const body=new THREE.Mesh(new THREE.CapsuleGeometry(.38,1.05,4,8),new THREE.MeshStandardMaterial({color:0x36b7de,metalness:.35,roughness:.4}));body.position.y=1.05;m.add(body);const head=new THREE.Mesh(new THREE.SphereGeometry(.24,12,8),new THREE.MeshStandardMaterial({color:0xc6b49c}));head.position.y=2;m.add(head);scene.add(m);attachRiggedCharacter(m,'player');tcbPeers.set(id,m);return m}
 function tcbConnect(){if(tcbSocket)tcbSocket.close();tcbClearPeers();tcbMyId=null;tcbRoom=tcbEl('tcbRoom').value.trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'').slice(0,16)||'NEXUS';const proto=location.protocol==='https:'?'wss:':'ws:';const serverHost=new URLSearchParams(location.search).get('server')||localStorage.getItem('tcb_server')||'the-codebreaker-server.onrender.com';const cleanHost=serverHost.replace(/^https?:\/\//,'').replace(/^wss?:\/\//,'').replace(/\/.*$/,'');const url=proto+'//'+cleanHost+'/ws';const sock=new WebSocket(url);tcbSocket=sock;tcbEl('tcbLobbyStatus').textContent='Connecting to '+url;
 sock.onopen=()=>{sock.send(JSON.stringify({type:'join',room:tcbRoom}));tcbEl('tcbNetworkStatus').textContent='ROOM '+tcbRoom};
-sock.onmessage=e=>{let m;try{m=JSON.parse(e.data)}catch{return}if(m.type==='welcome'){tcbMyId=m.id;tcbEl('tcbLobbyStatus').textContent='Connected · '+tcbRoom+' · Player '+m.id.slice(0,5)}if(m.type==='peers'){const live=new Set();for(const p of m.players){if(p.id===tcbMyId)continue;live.add(p.id);const mesh=tcbPeer(p.id);mesh.position.set(p.x||0,0,p.z||0);mesh.rotation.y=p.rot||0;mesh.visible=p.floor===playerData.floor}for(const [id,mesh] of tcbPeers){if(!live.has(id)){scene.remove(mesh);tcbPeers.delete(id)}}}if(m.type==='peers'){const count=[...tcbPeers.values()].filter(p=>p.visible).length; if(count>tcbActiveTeammates)tcbSpawnBudget+=2*(count-tcbActiveTeammates);tcbScaleGuards();}if(m.type==='phone_result'){tcbEl('tcbLobbyStatus').textContent='Phone converted '+m.binary+' → '+m.decimal}};
-sock.onerror=()=>{tcbEl('tcbLobbyStatus').textContent='WebSocket connection failed at '+url+'. Check Render Live status, HTTPS/WSS and browser console. Free instance may take 50+ seconds to wake.'};sock.onclose=()=>{if(tcbSocket===sock){tcbSocket=null;tcbEl('tcbNetworkStatus').textContent='OFFLINE';tcbClearPeers()}}}
-tcbEl('tcbJoin').onclick=tcbConnect;tcbEl('tcbLeave').onclick=()=>{tcbSocket?.close();tcbSocket=null;tcbClearPeers();tcbEl('tcbNetworkStatus').textContent='OFFLINE'};
+sock.onmessage=e=>{if(tcbSocket!==sock)return;let m;try{m=JSON.parse(e.data)}catch{return}if(m.type==='welcome'){tcbMyId=m.id;tcbEl('tcbLobbyStatus').textContent='Connected · '+tcbRoom+' · Player '+m.id.slice(0,5)}if(m.type==='peers'){const live=new Set();for(const p of m.players){if(p.id===tcbMyId)continue;live.add(p.id);const mesh=tcbPeer(p.id);mesh.position.set(p.x||0,0,p.z||0);mesh.rotation.y=p.rot||0;mesh.visible=p.floor===playerData.floor}for(const [id,mesh] of tcbPeers){if(!live.has(id)){scene.remove(mesh);tcbPeers.delete(id)}}}if(m.type==='peers'){const count=[...tcbPeers.values()].filter(p=>p.visible).length; if(count>tcbActiveTeammates)tcbSpawnBudget+=2*(count-tcbActiveTeammates);tcbScaleGuards();}if(m.type==='phone_result'){tcbEl('tcbLobbyStatus').textContent='Phone converted '+m.binary+' → '+m.decimal}};
+sock.onerror=()=>{tcbEl('tcbLobbyStatus').textContent='WebSocket connection failed at '+url+'. Check Render Live status, HTTPS/WSS and browser console. Free instance may take 50+ seconds to wake.'};sock.onclose=()=>{if(tcbSocket===sock){tcbSocket=null;tcbEl('tcbNetworkStatus').textContent='OFFLINE';tcbMyId=null;tcbClearPeers();tcbScaleGuards()}}}
+// Close the multiplayer session when the browser navigates away or closes the tab.
+// pagehide covers tab close, navigation and mobile lifecycle transitions.
+let tcbLeavingPage=false;
+function tcbDisconnectOnExit(){
+ if(tcbLeavingPage)return;
+ tcbLeavingPage=true;
+ const sock=tcbSocket;
+ if(sock){
+  try{if(sock.readyState===WebSocket.OPEN)sock.send(JSON.stringify({type:'leave'}));}catch(e){}
+  try{sock.close(1000,'Page closed');}catch(e){}
+  tcbSocket=null;
+ }
+}
+window.addEventListener('pagehide',tcbDisconnectOnExit);
+window.addEventListener('beforeunload',tcbDisconnectOnExit);
+window.addEventListener('pageshow',()=>{tcbLeavingPage=false;});
+tcbEl('tcbJoin').onclick=tcbConnect;tcbEl('tcbLeave').onclick=()=>{tcbSocket?.close();tcbSocket=null;tcbMyId=null;tcbClearPeers();tcbScaleGuards();tcbEl('tcbNetworkStatus').textContent='OFFLINE'};
 window.addEventListener('keydown',e=>{if(e.code==='KeyB'&&!e.repeat&&!['INPUT','TEXTAREA'].includes(document.activeElement?.tagName)){e.preventDefault();tcbEl('tcbPhoneButton').click()}},true);
 function tcbNetworkTick(){if(!tcbSocket||tcbSocket.readyState!==WebSocket.OPEN||!tcbMyId||!running)return;const now=performance.now();if(now-tcbLastSend<100)return;tcbLastSend=now;tcbSocket.send(JSON.stringify({type:'state',x:player.position.x,z:player.position.z,rot:player.rotation.y,floor:playerData.floor}))}
 // Network state runs alongside existing game loop without altering combat code.
